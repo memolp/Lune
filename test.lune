@@ -1,0 +1,32 @@
+
+# 这是一行注释
+
+People = extend(Object)#类声明的方式，直接继承自Object
+People.Name = ""    #这种是静态变量
+People.Age = 0
+People.ctor = function()
+{
+    this.Name = "xx"    # 这里才是类变量-- > obj
+    this.Age = 12 # 属性赋值的时候，只在obj本身进行设置，不递归查找。只有访问属性的时候才会递归
+}
+People.Say = function()
+{
+}
+
+JEFF = extend(People)
+JEFF.Say = function()
+{
+    super.Say()
+}
+
+obj = new(JEFF) # create obj, clone from JEFF,super=Clone from People
+
+parm = "xxx"
+
+test = function(arg1, arg2)
+{
+    if (arg2 == nil) 
+    {
+        print(arg1)
+    }
+}
