@@ -2,9 +2,7 @@ package org.jeff.lune.token;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 public class TokenReader
@@ -185,8 +183,37 @@ public class TokenReader
 				break;
 			}
 		}while(true);
+		String identify = current_sb_.toString();
+		if(identify.equals("function"))
+		{
+			return new Token(TokenType.KW_FUNCTION, identify, cache_lineno, cache_col);
+		}else if(identify.equals("if"))
+		{
+			return new Token(TokenType.KW_IF, identify, cache_lineno, cache_col);
+		}else if(identify.equals("elif"))
+		{
+			return new Token(TokenType.KW_ELIF, identify, cache_lineno, cache_col);
+		}else if(identify.equals("else"))
+		{
+			return new Token(TokenType.KW_ELSE, identify, cache_lineno, cache_col);
+		}else if(identify.equals("for"))
+		{
+			return new Token(TokenType.KW_FOR, identify, cache_lineno, cache_col);
+		}else if(identify.equals("in"))
+		{
+			return new Token(TokenType.KW_IN, identify, cache_lineno, cache_col);
+		}else if(identify.equals("while"))
+		{
+			return new Token(TokenType.KW_WHILE, identify, cache_lineno, cache_col);
+		}else if(identify.equals("break"))
+		{
+			return new Token(TokenType.KW_BREAK, identify, cache_lineno, cache_col);
+		}else if(identify.equals("continue"))
+		{
+			return new Token(TokenType.KW_CONTINUE, identify, cache_lineno, cache_col);
+		}
 		// 返回Token
-		return new Token(current_type_, current_sb_.toString(), cache_lineno, cache_col);
+		return new Token(current_type_, identify, cache_lineno, cache_col);
 	}
 	
 	Token ParseString(int c)
@@ -245,8 +272,15 @@ public class TokenReader
 		do
 		{
 			int b = GetChar();
-			if(b == EOF || b == '\n')
+			if(b == EOF )
+			{
 				break;
+			}else if(b == '\n')
+			{
+				lineno_ ++;
+				column_ = 1;
+				break;
+			}
 			AppendChar(b);
 		}while(true);
 		// 返回Token
@@ -439,8 +473,10 @@ public class TokenReader
 					return new Token(TokenType.RCURLY, "}", lineno_, column_);
 				case ';':
 					return new Token(TokenType.SEMICOLON, ";", lineno_, column_);
+				case ':':
+					return new Token(TokenType.COLON, ":", lineno_, column_);
 				case ',':
-					return new Token(TokenType.COLON, ",", lineno_, column_);
+					return new Token(TokenType.COMMA, ",", lineno_, column_);
 			}
 			throw new RuntimeException(String.format(UNEXPECTEDSYMBOL, b, filename_, lineno_, column_));
 		}
@@ -454,6 +490,7 @@ public class TokenReader
 		{
 			temp = GetToken();
 			if(temp == null) break;
+			if(temp.tokenType == TokenType.COMMENT) continue;
 			tokens.add(temp);
 		}while(true);
 		return tokens;	

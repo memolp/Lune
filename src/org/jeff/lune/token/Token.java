@@ -13,4 +13,17 @@ public class Token
 		this.tokenLine = line;
 		this.tokenCol = column;
 	}
+	@Override
+	public String toString() 
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append("[");
+		sb.append(this.tokenStr);
+		sb.append(",");
+		sb.append(String.valueOf(this.tokenLine));
+		sb.append(":");
+		sb.append(String.valueOf(this.tokenCol));
+		sb.append("]");
+		return sb.toString();
+	}
 }
