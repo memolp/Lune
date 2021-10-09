@@ -211,6 +211,9 @@ public class TokenReader
 		}else if(identify.equals("continue"))
 		{
 			return new Token(TokenType.KW_CONTINUE, identify, cache_lineno, cache_col);
+		}else if(identify.equals("return"))
+		{
+			return new Token(TokenType.KW_RETURN, identify, cache_lineno, cache_col);
 		}
 		// 返回Token
 		return new Token(current_type_, identify, cache_lineno, cache_col);

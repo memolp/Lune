@@ -22,6 +22,7 @@ public enum StatementType
 	MAP_OBJECT,  // 字典
 	IF,							// if
 	BLOCK,				// 语句块
+	RETURN,				// return
 
 	
 }

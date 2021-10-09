@@ -9,4 +9,5 @@ public enum LuneObjectType
 	LIST,
 	MAP,
 	FUNCTION,
+	EXECUTEABLE,
 }

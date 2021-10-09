@@ -46,7 +46,7 @@ public class LuneContext
 			parser.parser();
 			
 			ProgramStatement s = parser.GetProgram();
-			 this.runtime_.Execute(s);
+			 this.runtime_.Execute(s, null);
 			 return null;
 		}
 		

@@ -8,6 +8,7 @@ import org.jeff.lune.parsers.exps.AssignmentExpression;
 import org.jeff.lune.parsers.exps.BinaryExpression;
 import org.jeff.lune.parsers.exps.CallExpression;
 import org.jeff.lune.parsers.exps.FunctionExpression;
+import org.jeff.lune.parsers.exps.IndexExpression;
 import org.jeff.lune.parsers.exps.ListExpression;
 import org.jeff.lune.parsers.exps.MapExpression;
 import org.jeff.lune.parsers.exps.MemberExpression;
@@ -77,7 +78,7 @@ public class SyntaxParser
 			if(state == null) break;
 			program_.AddStatement(state);
 		}while(true);
-		System.out.print(program_.toString());
+		//System.out.print(program_.toString());
 	}
 
 	static final String SYNTAX_ERROR = "syntax error , unexpceted `%s`, line:%s, column:%s";
@@ -332,7 +333,18 @@ public class SyntaxParser
 				}else if(token.tokenType == TokenType.KW_CONTINUE)
 				{
 					
-				}else
+				}else if(token.tokenType == TokenType.KW_RETURN)
+				{
+					ReturnStatement ret = new ReturnStatement();
+					Statement exp = this.statement_parser(false);
+					if(exp == null)
+						throw new RuntimeException(String.format(SYNTAX_ERROR, token.tokenStr, token.tokenLine, token.tokenCol));
+					ret.expression = exp;
+					left = ret;
+					// return也不会在左侧
+					return left;
+				}
+				else
 				{
 					switch(token.tokenType)
 					{
@@ -341,8 +353,8 @@ public class SyntaxParser
 						case RPAREN:
 						case COMMA:
 						case COLON:
+						case OP_DOT:
 							this.PutToken();
-							;
 						case SEMICOLON:
 							break;
 						default:
@@ -350,7 +362,6 @@ public class SyntaxParser
 					}
 				}
 			} // ==== left end
-			if(onlyLeft) return left;
 			
 			Token next_token = this.GetToken();
 			if(next_token == null)
@@ -384,20 +395,29 @@ public class SyntaxParser
 				ncall.params = params;
 				left = ncall;
 				break;
-			} // 字典取值
+			} // 字典取值 或者列表索引
 			else if(next_token.tokenType == TokenType.LBRACK) //[
 			{
-				MemberExpression meb = new MemberExpression();
-				meb.parent = left;
+				IndexExpression meb = new IndexExpression();
+				meb.object = left;
 				
 				Statement child = this.statement_parser(false);
 				if(child == null)
 				{
 					throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
 				}
-				meb.child = child;
+				Token next = this.GetToken();
+				if(next == null)
+				{
+					throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
+				}
+				if(next.tokenType != TokenType.RBRACK)
+				{
+					throw new RuntimeException(String.format(SYNTAX_ERROR, next.tokenStr, next.tokenLine, next.tokenCol));
+				}
+				meb.index = child;
 				left = meb;
-				break;
+				continue;
 			}// 赋值语句
 			else if(next_token.tokenType == TokenType.OP_ASSSIGN)
 			{
@@ -410,6 +430,24 @@ public class SyntaxParser
 				assign.value = value;
 				left = assign;
 				break;
+			}// 属性索引 dot
+			else if(next_token.tokenType == TokenType.OP_DOT)
+			{
+				MemberExpression meb = new MemberExpression();
+				meb.parent = left;
+				Statement child = this.statement_parser(true);
+				if(child == null)
+				{
+					throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
+				}
+				meb.child = child;
+				left = meb;
+				break;
+			}
+			if(onlyLeft)
+			{
+				this.PutToken();
+				 return left;
 			}
 			// 所以二进制的操作
 			BinaryExpression binExp = new BinaryExpression(next_token.tokenType, next_token.tokenStr);
@@ -445,249 +483,6 @@ public class SyntaxParser
 			}
 		}
 		return left;
-	}
-	
-	Statement statement_parser()
-	{
-		Token	token = this.GetToken();
-		if(token == null)
-			return null;
-		// 先判断
-		Statement left = null;
-		do
-		{
-			// 变量
-			if(token.tokenType == TokenType.IDENTIFIER)
-			{
-				left = new IdentifierStatement(token);
-				break;
-			}// 字符串
-			else if(token.tokenType == TokenType.STRING)
-			{
-				left = new StringStatement(token);
-				break;
-			}// 数字
-			else if(token.tokenType == TokenType.NUMBER || token.tokenType ==  TokenType.HEXNUMBER)
-			{
-				left = new NumberStatement(token); 
-				break;
-			}// 列表
-			else if(token.tokenType == TokenType.LBRACK)  //[
-			{
-				ListExpression nlist = new ListExpression();
-				do
-				{
-					// 解析每个元素
-					Statement element = this.statement_parser();
-					if(element == null)
-						break;
-					nlist.AddElement(element);
-					
-					// 看下一个元素是,还是]
-					Token next_token = this.GetToken();
-					if(next_token.tokenType == TokenType.COLON)
-					{
-						continue;
-					}else if(next_token.tokenType == TokenType.RBRACK)
-					{
-						break;
-					}
-				}while(true);
-				// 列表不可能存在于表达式的左侧。
-				return nlist;
-			}// 字典
-			else if(token.tokenType == TokenType.LCURLY) //{
-			{
-				MapExpression ndict = new MapExpression();
-				do
-				{
-						// 先获取key
-						Statement key = this.statement_parser();
-						if(key == null) break;
-						
-						Token next_token = this.GetToken();
-						if(next_token == null )
-						{
-							throw new RuntimeException(String.format(SYNTAX_ERROR, key.toString(), key.startLine, key.startColoumn));
-						}
-						if(next_token.tokenType != TokenType.COMMA)
-						{
-							throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
-						}
-						// 获取值
-						Statement value = this.statement_parser();
-						if(value == null) //不可没有值
-						{
-							throw new RuntimeException(String.format(SYNTAX_ERROR, key.toString(), key.startLine, key.startColoumn));
-						}
-						ndict.Add(key, value);
-						// 继续解析下一个
-						next_token = this.GetToken();
-						if(next_token == null )
-						{
-							throw new RuntimeException(String.format(SYNTAX_ERROR, value.toString(), value.startLine, value.startColoumn));
-						}
-						if(next_token.tokenType == TokenType.COLON)
-							continue;
-						else if(next_token.tokenType == TokenType.RCURLY)
-						{
-							break;
-						}
-					}while(true);
-				// 字典也不可能是左侧数据
-				return ndict;
-			}
-			// (
-			else if(token.tokenType == TokenType.LPAREN)
-			{
-				left = this.statement_parser();
-				Token next_token = this.GetToken();
-				if(next_token == null )
-				{
-					throw new RuntimeException(String.format(SYNTAX_ERROR, left.toString(), left.startLine, left.startColoumn));
-				}
-				else if(next_token.tokenType != TokenType.RPAREN)
-				{
-					throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
-				}
-			}
-			// 取not
-			else if(token.tokenType == TokenType.OP_NOT)
-			{
-				Statement value = this.statement_parser();
-				if(value == null)
-					throw new RuntimeException(String.format(SYNTAX_ERROR, token.tokenStr, token.tokenLine, token.tokenCol));
-				left = new UnaryExpression(TokenType.OP_NOT, value);
-			}// 取反
-			else if(token.tokenType == TokenType.OP_BIT_XOR)
-			{
-				Statement value = this.statement_parser();
-				if(value == null)
-					throw new RuntimeException(String.format(SYNTAX_ERROR, token.tokenStr, token.tokenLine, token.tokenCol));
-				left = new UnaryExpression(TokenType.OP_NOT, value);
-			}// 函数
-			else if(token.tokenType == TokenType.KW_FUNCTION)
-			{
-				FunctionExpression func = new FunctionExpression();
-				//this.function_parser(func);
-				// 函数也不会在左侧
-				return func;
-			}else if(token.tokenType == TokenType.KW_IF)
-			{
-				
-			}else if(token.tokenType == TokenType.KW_ELIF)
-			{
-				
-			}else if(token.tokenType == TokenType.KW_ELSE)
-			{
-				
-			}else if(token.tokenType == TokenType.KW_FOR)
-			{
-				
-			}else if(token.tokenType == TokenType.KW_WHILE)
-			{
-				
-			}else if(token.tokenType ==TokenType.KW_BREAK)
-			{
-				
-			}else if(token.tokenType == TokenType.KW_CONTINUE)
-			{
-				
-			}else
-			{
-				//error
-			}
-		}while(left == null);
-		
-		if(left == null) // error
-			throw new RuntimeException(String.format(SYNTAX_ERROR, token.tokenStr, token.tokenLine, token.tokenCol));
-		Token next_token = this.GetToken();
-		if(next_token == null)
-			return left;
-		// ( 函数调用
-		if(next_token.tokenType == TokenType.LPAREN )
-		{
-			CallExpression ncall = new CallExpression();
-			ncall.variable = left;
-			
-			ParamsExpression params = new ParamsExpression();
-			do
-			{
-				Statement node = this.statement_parser();
-				if(node == null) break;
-				params.AddParam(node);
-				Token next_tk = this.GetToken();
-				if(next_tk == null)
-				{
-					throw new RuntimeException(String.format(SYNTAX_ERROR, token.tokenStr, token.tokenLine, token.tokenCol));
-				}
-				if(next_tk.tokenType == TokenType.COMMA)
-				{
-					continue;
-				}
-				if(next_tk.tokenType == TokenType.RPAREN)
-				{
-					break;
-				}
-			}while(true);
-			ncall.params = params;
-			return ncall;
-		} // 字典取值
-		else if(next_token.tokenType == TokenType.LBRACK) //[
-		{
-			MemberExpression meb = new MemberExpression();
-			meb.parent = left;
-			
-			Statement child = this.statement_parser();
-			if(child == null)
-			{
-				throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
-			}
-			meb.child = child;
-			return meb;
-		}// 赋值语句
-		else if(next_token.tokenType == TokenType.OP_ASSSIGN)
-		{
-			AssignmentExpression assign = new AssignmentExpression();
-			assign.variable =left;
-			
-			Statement value = this.statement_parser();
-			if(value == null)
-				throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
-			assign.value = value;
-			return assign;
-		}
-		// 所以二进制的操作
-		BinaryExpression binExp = new BinaryExpression(next_token.tokenType, next_token.tokenStr);
-		Statement right = null;
-		switch(next_token.tokenType)
-		{
-			case OP_PLUS:
-			case OP_MINUS:
-			case OP_MULTI:
-			case OP_DIV:
-			case OP_MOD:
-			case OP_AND:
-			case OP_OR:
-			case OP_EQ:
-			case OP_LE:
-			case OP_LT:
-			case OP_GE:
-			case OP_GT:
-			case OP_BIT_AND:
-			case OP_BIT_OR:
-			case OP_BIT_LEFT:
-			case OP_BIT_RIGHT:
-				right = this.statement_parser();
-				if(right == null)
-					throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
-				binExp.left = left;
-				binExp.right = right;
-				//return ExpressionXX(binExp);
-			default:
-				this.PutToken();
-				return left;
-		}
 	}
 	
 	BinaryExpression ExpressionXX(BinaryExpression bin)

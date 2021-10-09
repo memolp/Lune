@@ -130,4 +130,12 @@ public class LuneObject extends Object
 		}
 		return obj;
 	}
+	public LuneObject GetAttribute(String name)
+	{
+		return this.__attributes.get(name);
+	}
+	public void SetAttribute(String name, LuneObject value)
+	{
+		this.__attributes.put(name, value);
+	}
 }
