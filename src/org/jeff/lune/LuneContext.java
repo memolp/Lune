@@ -40,19 +40,12 @@ public class LuneContext
 		 */
 		public Object execfile(String filename) throws FileNotFoundException
 		{
-			// 创建Buffer执行Token解析和语法树构建
-			BufferedReader reader = new BufferedReader(new FileReader(filename));
-			SyntaxParser parser = new SyntaxParser(reader, filename);
-			parser.parser();
-			
-			ProgramStatement s = parser.GetProgram();
-			 this.runtime_.Execute(s, null);
-			 return null;
+			return this.runtime_.execfile(filename);
 		}
 		
 		public Object execute(String script)
 		{
 			
-				return null;
+				return this.runtime_.execute(script);
 		}
 }

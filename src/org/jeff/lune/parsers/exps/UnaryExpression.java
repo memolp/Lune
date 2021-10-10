@@ -1,5 +1,7 @@
 package org.jeff.lune.parsers.exps;
 
+import org.jeff.lune.LuneRuntime;
+import org.jeff.lune.object.LuneObject;
 import org.jeff.lune.parsers.ExpressionStatement;
 import org.jeff.lune.parsers.Statement;
 import org.jeff.lune.parsers.StatementType;
@@ -14,5 +16,10 @@ public class UnaryExpression extends ExpressionStatement
 		this.opType = type;
 		this.variable = node;
 		this.statementType = StatementType.EXPRESSION_UNARY;
+	}
+	@Override
+	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

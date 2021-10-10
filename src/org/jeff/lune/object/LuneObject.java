@@ -37,6 +37,14 @@ public class LuneObject extends Object
 		this.SetValue(v);
 	}
 	/**
+	 * 对象是布尔值
+	 * @param v
+	 */
+	public LuneObject(boolean v)
+	{
+		this.SetValue(v);
+	}
+	/**
 	 * 对象内部进行拷贝
 	 * @param v
 	 */
@@ -62,6 +70,11 @@ public class LuneObject extends Object
 	{
 		this.value_ = v;
 		this.objType = LuneObjectType.STRING;
+	}
+	public void SetValue(boolean v)
+	{
+		this.value_ = v;
+		this.objType = LuneObjectType.BOOL;
 	}
 	/**
 	 * 设置对象的值是一个Java对象
@@ -106,17 +119,13 @@ public class LuneObject extends Object
 	 */
 	public long toLong()
 	{
-		if(this.objType != LuneObjectType.NUMBER)
-			throw new RuntimeException();
-		return (long) this.value_;
+		return new Double(this.toNumber()).longValue();
 	}
 	
 	@Override
 	public String toString() 
 	{
-		StringBuilder sb = new StringBuilder();
-		sb.append(String.valueOf(this.value_));
-		return sb.toString();
+		return String.valueOf(this.value_);
 	}
 	
 	public LuneObject clone()
@@ -137,5 +146,28 @@ public class LuneObject extends Object
 	public void SetAttribute(String name, LuneObject value)
 	{
 		this.__attributes.put(name, value);
+	}
+	
+	public boolean toBool() 
+	{
+		if(this.objType == LuneObjectType.NUMBER)
+			return this.toNumber()  != 0.0;
+		else if(this.objType == LuneObjectType.STRING)
+			return this.toString().length() > 0;
+		else if(this.objType == LuneObjectType.BOOL)
+			return (boolean) this.value_;
+		else if(this.objType == LuneObjectType.DEFAULT)
+			return false;
+		else if(this.objType == LuneObjectType.OBJECT)
+			return !this.__attributes.isEmpty();
+		return true;
+	}
+	
+	public boolean equals(LuneObject obj) 
+	{
+		if(this.objType != obj.objType) return false;
+		if(this.objType == LuneObjectType.NUMBER)
+			return this.toNumber() == obj.toNumber();
+		return this.value_.equals(obj.value_);
 	}
 }

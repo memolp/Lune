@@ -21,8 +21,14 @@ public enum StatementType
 	LIST_OBJECT,	// 列表
 	MAP_OBJECT,  // 字典
 	IF,							// if
+	ELIF,						// elif
+	ELSE,					// else
+	WHILE,			// while 循环
+	FOR,				//for 迭代器
 	BLOCK,				// 语句块
 	RETURN,				// return
+	BREAK,
+	CONTINUE,
 
 	
 }

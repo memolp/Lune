@@ -78,13 +78,12 @@ public class SyntaxParser
 			if(state == null) break;
 			program_.AddStatement(state);
 		}while(true);
-		//System.out.print(program_.toString());
+//		System.out.print(program_.toString());
 	}
 
 	static final String SYNTAX_ERROR = "syntax error , unexpceted `%s`, line:%s, column:%s";
-	BlockStatement block_parser()
+	BlockStatement block_parser(BlockStatement block)
 	{
-		BlockStatement block = new BlockStatement();
 		do
 		{
 			Statement state = this.statement_parser(false);
@@ -108,7 +107,8 @@ public class SyntaxParser
 		{
 			throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
 		}
-		BlockStatement body = this.block_parser();
+		BlockStatement body = new BlockStatement(BlockStatementType.FUNCTION_BLOCK);
+		this.block_parser(body);
 		function.body = body;
 		// TODO
 		next_token = this.GetToken();
@@ -152,22 +152,107 @@ public class SyntaxParser
 		return params;
 	}
 	
-	ForLoopStatement for_loop_parser(Token token)
+	void for_loop_parser(ForLoopStatement for_state)
 	{
-		ForLoopStatement for_state = new ForLoopStatement();
-		return for_state;
+		Token token = this.GetToken();
+		if(token.tokenType  != TokenType.LPAREN)
+			throw new RuntimeException(String.format(SYNTAX_ERROR, token.tokenStr, token.tokenLine, token.tokenCol));
+		ParamsExpression params = new ParamsExpression();
+		do
+		{
+			Token next_token = this.GetToken();
+			if(next_token.tokenType ==TokenType.IDENTIFIER)
+			{
+				IdentifierStatement idt = new IdentifierStatement(next_token);
+				params.AddParam(idt);
+			}else
+			{
+				throw new RuntimeException();
+			}
+			next_token = this.GetToken();
+			if(next_token.tokenType == TokenType.COMMA)
+				continue;
+			if(next_token.tokenType == TokenType.KW_IN)
+			{
+				break;
+			}
+		}while(true);
+		for_state.params = params;
+		Statement iter = this.statement_parser(false);
+		for_state.iterObject = iter;
+		Token next_token = this.GetToken();
+		if(next_token.tokenType != TokenType.RPAREN) throw new RuntimeException();
+		next_token = this.GetToken();
+		if(next_token.tokenType != TokenType.LCURLY) throw new RuntimeException();
+		BlockStatement body = new BlockStatement(BlockStatementType.LOOP_BLOCK);
+		this.block_parser(body);
+		for_state.body = body;
+		next_token = this.GetToken();
+		if(next_token.tokenType != TokenType.RCURLY)
+			throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
 	}
 	
-	WhileStatement while_loop_parser(Token token)
+	void  while_loop_parser(WhileStatement wstate)
 	{
-		WhileStatement while_state = new WhileStatement();
-		return while_state;
+		Token token = this.GetToken();
+		if(token.tokenType  != TokenType.LPAREN)
+			throw new RuntimeException(String.format(SYNTAX_ERROR, token.tokenStr, token.tokenLine, token.tokenCol));
+		Statement exp = this.statement_parser(false);
+		wstate.condition = exp;
+		Token next_token = this.GetToken();
+		if(next_token.tokenType != TokenType.RPAREN)
+			throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
+		next_token = this.GetToken();
+		if(next_token.tokenType != TokenType.LCURLY)
+			throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
+		BlockStatement body =  new BlockStatement(BlockStatementType.LOOP_BLOCK);
+		this.block_parser(body);
+		wstate.body = body;
+		next_token = this.GetToken();
+		if(next_token.tokenType != TokenType.RCURLY)
+			throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
 	}
 	
-	IfElseStatement ifelse_parser(Token token)
+	void ifelse_parser(IfElseStatement if_state, boolean no_codition)
 	{
-		IfElseStatement if_state = new IfElseStatement();
-		return if_state;
+		if(!no_codition)
+		{
+			Token token = this.GetToken();
+			if(token.tokenType  != TokenType.LPAREN)
+				throw new RuntimeException(String.format(SYNTAX_ERROR, token.tokenStr, token.tokenLine, token.tokenCol));
+			Statement exp = this.statement_parser(false);
+			if_state.condition = exp;
+			Token next_token = this.GetToken();
+			if(next_token.tokenType != TokenType.RPAREN)
+				throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
+		}
+		Token next_token = this.GetToken();
+		if(next_token.tokenType != TokenType.LCURLY)
+			throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
+		BlockStatement body =  new BlockStatement(BlockStatementType.IFELSE_BLOCK);
+		this.block_parser(body);
+		if_state.body = body;
+		next_token = this.GetToken();
+		if(next_token.tokenType != TokenType.RCURLY)
+			throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
+		next_token = this.GetToken();
+		// 如果有elif分支
+		if(next_token.tokenType ==TokenType.KW_ELIF)
+		{
+			IfElseStatement branch = new IfElseStatement(StatementType.ELIF);
+			this.ifelse_parser(branch, false);
+			if_state.Switch = branch;
+		}
+		else if(next_token.tokenType == TokenType.KW_ELSE)
+		{
+			IfElseStatement branch = new IfElseStatement(StatementType.ELSE);
+			this.ifelse_parser(branch, true);
+			if_state.Switch = branch;
+		}
+		else
+		{
+			this.PutToken();
+		}
 	}
 	Statement statement_parser(boolean onlyLeft)
 	{
@@ -190,7 +275,7 @@ public class SyntaxParser
 				}
 				if(token.tokenType== TokenType.SEMICOLON)
 				{
-					break;
+					continue;
 				}
 				
 				// 变量
@@ -305,6 +390,16 @@ public class SyntaxParser
 					if(value == null)
 						throw new RuntimeException(String.format(SYNTAX_ERROR, token.tokenStr, token.tokenLine, token.tokenCol));
 					left = new UnaryExpression(TokenType.OP_NOT, value);
+				}// 取负数
+				else if(token.tokenType == TokenType.OP_MINUS)
+				{
+					Token next_token = this.GetToken();
+					if(next_token.tokenType != TokenType.NUMBER)
+						throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
+					NumberStatement num = new NumberStatement(next_token);
+					num.value = -num.value;
+					left = num;
+					break;
 				}// 函数
 				else if(token.tokenType == TokenType.KW_FUNCTION)
 				{
@@ -314,31 +409,35 @@ public class SyntaxParser
 					return func;
 				}else if(token.tokenType == TokenType.KW_IF)
 				{
-					
-				}else if(token.tokenType == TokenType.KW_ELIF)
-				{
-					
-				}else if(token.tokenType == TokenType.KW_ELSE)
-				{
-					
+					IfElseStatement ifstate = new IfElseStatement(StatementType.IF);
+					this.ifelse_parser(ifstate, false);
+					return ifstate;
 				}else if(token.tokenType == TokenType.KW_FOR)
 				{
-					
+					ForLoopStatement forstate = new ForLoopStatement();
+					this.for_loop_parser(forstate);
+					return forstate;
 				}else if(token.tokenType == TokenType.KW_WHILE)
 				{
-					
+					WhileStatement whilestate = new WhileStatement();
+					this.while_loop_parser(whilestate);
+					return whilestate;
 				}else if(token.tokenType ==TokenType.KW_BREAK)
 				{
-					
+					BreakStatement bk = new BreakStatement();
+					return bk;
 				}else if(token.tokenType == TokenType.KW_CONTINUE)
 				{
-					
+					ContinueStatement ct = new ContinueStatement();
+					return ct;
 				}else if(token.tokenType == TokenType.KW_RETURN)
 				{
 					ReturnStatement ret = new ReturnStatement();
 					Statement exp = this.statement_parser(false);
-					if(exp == null)
-						throw new RuntimeException(String.format(SYNTAX_ERROR, token.tokenStr, token.tokenLine, token.tokenCol));
+					if(exp == null)  // return 可能是空的
+					{
+						//throw new RuntimeException(String.format(SYNTAX_ERROR, token.tokenStr, token.tokenLine, token.tokenCol));
+					}
 					ret.expression = exp;
 					left = ret;
 					// return也不会在左侧
@@ -369,6 +468,11 @@ public class SyntaxParser
 			// ( 函数调用
 			if(next_token.tokenType == TokenType.LPAREN )
 			{
+				if(left.statementType != StatementType.IDENTIFIER)
+				{
+					this.PutToken();
+					return left;
+				}
 				CallExpression ncall = new CallExpression();
 				ncall.variable = left;
 				
@@ -376,8 +480,10 @@ public class SyntaxParser
 				do
 				{
 					Statement node = this.statement_parser(false);
-					if(node == null) break;
-					params.AddParam(node);
+					if(node != null)
+					{
+						params.AddParam(node);
+					}
 					Token next_tk = this.GetToken();
 					if(next_tk == null)
 					{

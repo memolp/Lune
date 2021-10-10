@@ -15,6 +15,7 @@ public class ProgramStatement extends BlockStatement
 	 */
 	public ProgramStatement(String srcFile)
 	{
+		super(BlockStatementType.PROGRAM_BLOCK);
 		this.sourceFile = srcFile;
 		this.statementType = StatementType.BLOCK;
 	}

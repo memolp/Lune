@@ -1,15 +1,11 @@
 package org.jeff.lune.object;
 
-import org.jeff.lune.LuneExecuteable;
+import org.jeff.lune.LuneRuntime;
 
-public class LunePrintFunc extends LuneObject implements LuneExecuteable
+public class LunePrintFunc extends LuneExecuteable
 {
-	public LunePrintFunc()
-	{
-		this.objType = LuneObjectType.EXECUTEABLE;
-	}
 	@Override
-	public LuneObject Execute(LuneObject... args)
+	public LuneObject Execute(LuneRuntime rt, LuneObject... args)
 	{
 		StringBuilder sb = new StringBuilder();
 		for(LuneObject obj : args)

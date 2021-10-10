@@ -6,6 +6,7 @@ public enum LuneObjectType
 	OBJECT,
 	NUMBER,
 	STRING,
+	BOOL,
 	LIST,
 	MAP,
 	FUNCTION,

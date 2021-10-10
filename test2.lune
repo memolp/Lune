@@ -1,3 +1,37 @@
-a = 5
-d = "ssds"
-print( string.format("s=%sm, v=%s", a, d))
+import("test1")
+test = function(arg1)
+{
+	a = arg1
+	d = "ssds"
+	print(d)
+	if(a == 3 && a < 10)
+	{
+		print("<<<<<<<<<<<") ;
+	}else
+	{
+		print(">>>>>>>>>>>>>>")
+	}
+	print( string.format("s=%sm, v=%s %s", a, d, Test_1_Name))
+}
+
+
+i = 0
+while(i < 5)
+{
+	i = i +1
+	print(string.format("w::::%s", i))
+	if(i < 2)
+	{
+		continue
+	}
+	print(string.format("while::::%s", i))
+	if( i == 3)
+	{
+		test(i)
+		break
+	}
+	
+}
+test(4)
+print("dd")
+print(Test_1_Name)

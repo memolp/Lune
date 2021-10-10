@@ -18,7 +18,7 @@ public class TestMain
 	public static void main(String[] args) throws Exception
 	{
 		LuneContext ctx = new LuneContext();
-		ctx.execfile("test2.lune");
+		ctx.execfile("test3.lune");
 	}
 
 }

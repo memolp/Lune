@@ -88,7 +88,7 @@ public class TokenReader
 	public TokenReader(Reader reader, String filename)
 	{
 		lineno_ = 1;
-		column_ = 1;
+		column_ = 0;
 		reader_ = reader;
 		filename_ = filename;
 	}
@@ -109,7 +109,7 @@ public class TokenReader
 			if(b == ENTER) // 特殊对换行处理，要增加行号
 			{
 				lineno_++;
-				column_ = 1;
+				column_ = 0;
 				break;
 			}
 			if(isNumber(b))
@@ -162,7 +162,7 @@ public class TokenReader
 			if(b == '\n')
 			{
 				lineno_++;
-				column_ = 1;
+				column_ = 0;
 				break;
 			}
 			if(isAlpha(b))
@@ -221,7 +221,7 @@ public class TokenReader
 	
 	Token ParseString(int c)
 	{
-		AppendChar(c);
+//		AppendChar(c);
 		current_type_ = TokenType.STRING;
 		int cache_lineno = lineno_;
 		int cache_col = column_;
@@ -237,7 +237,7 @@ public class TokenReader
 				if(current_sb_.charAt(current_sb_.length()-1) == '\\')  //末尾加 `\`后可以换行
 				{
 					lineno_++;
-					column_ = 1;
+					column_ = 0;
 					continue;
 				}
 				throw new RuntimeException(String.format(UNEXPECTEDSYMBOL, b, filename_, lineno_, column_));
@@ -252,7 +252,7 @@ public class TokenReader
 				}else
 				{
 					//End b
-					AppendChar(b);
+//					AppendChar(b);
 					break;
 				}
 			}
@@ -281,7 +281,7 @@ public class TokenReader
 			}else if(b == '\n')
 			{
 				lineno_ ++;
-				column_ = 1;
+				column_ = 0;
 				break;
 			}
 			AppendChar(b);
@@ -310,6 +310,7 @@ public class TokenReader
 		try
 		{
 			reader_.reset();
+			column_--;
 		} catch (IOException e)
 		{
 			// TODO Auto-generated catch block
@@ -342,7 +343,7 @@ public class TokenReader
 			if(b == '\n')
 			{
 				lineno_ ++;
-				column_ = 1;
+				column_ = 0;
 				continue;
 			}
 			if(isNumber(b))

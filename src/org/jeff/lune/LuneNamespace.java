@@ -14,17 +14,20 @@ import org.jeff.lune.object.LuneObject;
  */
 public class LuneNamespace
 {
+	LuneNamespaceType mNameType;
 	Map<String, LuneObject> mNamespaces = new HashMap<String, LuneObject>();
 	LuneNamespace mParent = null;
-	public LuneNamespace()
+	public LuneNamespace(LuneNamespaceType type)
 	{
+		this.mNameType = type;
 	}
 	/**
 	 * 创建命名空间，并指定父对象，允许递归查找
 	 * @param parent
 	 */
-	public LuneNamespace(LuneNamespace parent)
+	public LuneNamespace(LuneNamespaceType type, LuneNamespace parent)
 	{
+		this.mNameType = type;
 		this.mParent = parent;
 	}
 	/**
@@ -72,5 +75,12 @@ public class LuneNamespace
 			}
 		}
 		return null;
+	}
+	
+	public boolean IsInFunctionNamespace()
+	{
+		if(this.mNameType == LuneNamespaceType.FUNCTION) return true;
+		if(this.mParent != null) return this.mParent.IsInFunctionNamespace();
+		return false;
 	}
 }
