@@ -1,0 +1,16 @@
+dict1 = {}
+test_f = function(a,b)
+{
+    print(a+b)
+}
+dict2 = {"a":15, "b":21, "c":test_f}
+print(dict2["a"])
+dict2["b"] = 50
+dict2["e"] = 1
+print(dict2["b"])
+print(table.len(dict2))
+
+for(k,v in dict2)
+{
+    print(k,v)
+}

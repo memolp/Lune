@@ -31,7 +31,10 @@ public class MemberExpression extends ExpressionStatement
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
 		LuneObject obj = rt.GetLuneObject(parent, object);
-		if(obj == null) throw new RuntimeException();
+		if(obj == null) 
+		{
+			throw new RuntimeException();
+		}
 		return this.child.OnExecute(rt, obj);
 	}
 }

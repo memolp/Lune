@@ -2,7 +2,6 @@ package org.jeff.lune.object;
 
 import java.io.FileNotFoundException;
 
-import org.jeff.lune.LuneContext;
 import org.jeff.lune.LuneRuntime;
 
 public class LuneImportFunc extends LuneExecuteable

@@ -2,6 +2,7 @@ package org.jeff.lune.object;
 
 import java.util.HashMap;
 
+
 public class LuneObject extends Object
 {
 	public LuneObjectType objType = LuneObjectType.DEFAULT;
@@ -163,11 +164,22 @@ public class LuneObject extends Object
 		return true;
 	}
 	
-	public boolean equals(LuneObject obj) 
+	public boolean equals(Object obj) 
 	{
-		if(this.objType != obj.objType) return false;
-		if(this.objType == LuneObjectType.NUMBER)
-			return this.toNumber() == obj.toNumber();
-		return this.value_.equals(obj.value_);
+		if(obj instanceof LuneObject)
+		{
+			LuneObject obj_ = (LuneObject)obj;
+			if(this.objType != obj_.objType) return false;
+			if(this.objType == LuneObjectType.NUMBER)
+				return this.toNumber() == obj_.toNumber();
+			return this.value_.equals(obj_.value_);
+		}
+		return super.equals(obj);
+	}
+	
+	@Override
+	public int hashCode()
+	{
+		return this.value_.hashCode();
 	}
 }

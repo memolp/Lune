@@ -1,9 +1,8 @@
 package org.jeff.lune.parsers.exps;
 
-import java.util.List;
-
 import org.jeff.lune.LuneRuntime;
 import org.jeff.lune.object.LuneListObject;
+import org.jeff.lune.object.LuneMapObject;
 import org.jeff.lune.object.LuneObject;
 import org.jeff.lune.object.LuneObjectType;
 import org.jeff.lune.parsers.ExpressionStatement;
@@ -41,8 +40,14 @@ public class IndexExpression extends ExpressionStatement
 			LuneListObject list_ = (LuneListObject)res;
 			LuneObject index_ = this.index.OnExecute(rt, null);
 			return list_.Get((int) index_.toLong());
+		}else if(res.objType == LuneObjectType.MAP)
+		{
+			LuneMapObject map_ = (LuneMapObject)res;
+			LuneObject index_ = this.index.OnExecute(rt, null);
+			return map_.Get(index_);
+		}else
+		{
+			throw new RuntimeException();
 		}
-		
-		return null;
 	}
 }

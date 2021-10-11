@@ -11,4 +11,6 @@ public enum LuneObjectType
 	MAP,
 	FUNCTION,
 	EXECUTEABLE,
+	CLASS,
+	INSTANCE,
 }

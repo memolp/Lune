@@ -6,6 +6,8 @@ import java.util.List;
 import org.jeff.lune.LuneNamespace;
 import org.jeff.lune.LuneNamespaceType;
 import org.jeff.lune.LuneRuntime;
+import org.jeff.lune.object.LuneClassInstance;
+import org.jeff.lune.object.LuneClassObject;
 import org.jeff.lune.object.LuneExecuteable;
 import org.jeff.lune.object.LuneObject;
 import org.jeff.lune.object.LuneObjectType;
@@ -62,7 +64,47 @@ public class CallExpression extends ExpressionStatement
 				args[index++] = temp_args;
 			}
 			return impfunc.Execute(rt, args);
-		}else
+		}
+		else if(func.objType == LuneObjectType.CLASS)
+		{
+			LuneClassInstance obj = new LuneClassInstance((LuneClassObject) func);
+			LuneObject ctor_ = obj.GetAttribute("ctor");
+			if(ctor_ != null && ctor_.objType == LuneObjectType.FUNCTION)
+			{
+				FunctionExpression func_ = (FunctionExpression) ctor_.GetValue();
+				LuneNamespace temp_func_namespace = new LuneNamespace(LuneNamespaceType.FUNCTION, rt.CurrentNamespace());
+				List<LuneObject> args = new LinkedList<LuneObject>();
+				LuneObject temp_args = null;
+				// 处理传参部分
+				for(Statement param_state: this.params.params)
+				{
+					temp_args = param_state.OnExecute(rt, null);
+					if(temp_args == null)
+						throw new RuntimeException();
+					args.add(temp_args);
+				}
+				temp_func_namespace.AddSymbol("arguments", args);
+				int index =0;
+				IdentifierStatement paramIdt = null;
+				for(Statement param_state: func_.params.params)
+				{
+					paramIdt = (IdentifierStatement)param_state;
+					if(index < args.size())
+						temp_func_namespace.AddSymbol(paramIdt.name, args.get(index++));
+					else
+						temp_func_namespace.AddSymbol(paramIdt.name, new LuneObject());	// 传参数量可以和声明的参数不一致的。
+				}
+				temp_func_namespace.AddSymbol("this", obj);
+				
+				// 将命名空间放入栈顶
+				rt.PushNamespace(temp_func_namespace);
+				func_.OnFunctionCall(rt, null);
+				// 函数执行完成后移除命名空间
+				rt.PopNamespace();
+			}
+			return obj;
+		}
+		else
 		{
 			FunctionExpression func_ = (FunctionExpression) func.GetValue();
 			LuneNamespace temp_func_namespace = new LuneNamespace(LuneNamespaceType.FUNCTION, rt.CurrentNamespace());
@@ -86,6 +128,21 @@ public class CallExpression extends ExpressionStatement
 					temp_func_namespace.AddSymbol(paramIdt.name, args.get(index++));
 				else
 					temp_func_namespace.AddSymbol(paramIdt.name, new LuneObject());	// 传参数量可以和声明的参数不一致的。
+			}
+			if(object != null)
+			{
+				if(object.objType == LuneObjectType.INSTANCE)
+					temp_func_namespace.AddSymbol("this", object);
+				else if(object.objType == LuneObjectType.CLASS)
+				{
+					LuneObject ist = rt.CurrentNamespace().GetSymbol("this");
+					if(ist == null)
+						throw new RuntimeException();
+					if(ist.objType != LuneObjectType.INSTANCE)
+						throw new RuntimeException();
+					// 这里还要检查类继承对不对
+					temp_func_namespace.AddSymbol("this", ist);
+				}
 			}
 			// 将命名空间放入栈顶
 			rt.PushNamespace(temp_func_namespace);

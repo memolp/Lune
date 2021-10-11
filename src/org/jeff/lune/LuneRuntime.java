@@ -3,35 +3,22 @@ package org.jeff.lune;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
-import org.jeff.lune.object.LuneExecuteable;
-import org.jeff.lune.object.LuneFunction;
+import org.jeff.lune.object.LuneClassFunc;
 import org.jeff.lune.object.LuneImportFunc;
 import org.jeff.lune.object.LuneObject;
-import org.jeff.lune.object.LuneObjectType;
 import org.jeff.lune.object.LunePrintFunc;
 import org.jeff.lune.object.LuneRangeFunc;
 import org.jeff.lune.object.LuneStringModule;
 import org.jeff.lune.object.LuneTableModule;
-import org.jeff.lune.parsers.BlockStatement;
 import org.jeff.lune.parsers.BlockStatementType;
-import org.jeff.lune.parsers.IfElseStatement;
 import org.jeff.lune.parsers.ProgramStatement;
-import org.jeff.lune.parsers.ReturnStatement;
 import org.jeff.lune.parsers.Statement;
 import org.jeff.lune.parsers.StatementType;
 import org.jeff.lune.parsers.SyntaxParser;
-import org.jeff.lune.parsers.exps.AssignmentExpression;
-import org.jeff.lune.parsers.exps.BinaryExpression;
-import org.jeff.lune.parsers.exps.CallExpression;
-import org.jeff.lune.parsers.exps.FunctionExpression;
 import org.jeff.lune.parsers.exps.IndexExpression;
-import org.jeff.lune.parsers.exps.ListExpression;
-import org.jeff.lune.parsers.exps.MapExpression;
 import org.jeff.lune.parsers.exps.MemberExpression;
 import org.jeff.lune.parsers.objs.IdentifierStatement;
 import org.jeff.lune.parsers.objs.NumberStatement;
@@ -44,6 +31,7 @@ public class LuneRuntime
 	public LuneRuntime()
 	{
 		mGlobalNamespaces = new LuneNamespace(LuneNamespaceType.GLOBAL);
+		mGlobalNamespaces.AddSymbol("class", new LuneClassFunc());
 		mGlobalNamespaces.AddSymbol("print", new LunePrintFunc());
 		mGlobalNamespaces.AddSymbol("import", new LuneImportFunc());
 		mGlobalNamespaces.AddSymbol("xrange", new LuneRangeFunc());

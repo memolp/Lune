@@ -8,9 +8,14 @@ public class LunePrintFunc extends LuneExecuteable
 	public LuneObject Execute(LuneRuntime rt, LuneObject... args)
 	{
 		StringBuilder sb = new StringBuilder();
-		for(LuneObject obj : args)
+		LuneObject obj;
+		int size = args.length;
+		for(int i =0; i < size; i++)
 		{
+			obj = args[i];
 			sb.append(obj.toString());
+			if(i < size -1)
+				sb.append(",");
 		}
 		System.out.println(sb.toString());
 		return null;

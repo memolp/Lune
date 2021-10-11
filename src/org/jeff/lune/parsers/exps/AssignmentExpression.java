@@ -2,6 +2,7 @@ package org.jeff.lune.parsers.exps;
 
 import org.jeff.lune.LuneRuntime;
 import org.jeff.lune.object.LuneListObject;
+import org.jeff.lune.object.LuneMapObject;
 import org.jeff.lune.object.LuneObject;
 import org.jeff.lune.object.LuneObjectType;
 import org.jeff.lune.parsers.ExpressionStatement;
@@ -47,7 +48,10 @@ public class AssignmentExpression extends ExpressionStatement
 		{
 			IdentifierStatement idt = (IdentifierStatement)variable;
 			LuneObject val = this.value.OnExecute(rt, null);
-			if(val == null) throw new RuntimeException();
+			if(val == null)
+			{
+				throw new RuntimeException();
+			}
 			if(object == null)
 			{
 				rt.CurrentNamespace().AddSymbol(idt.name, val);
@@ -67,6 +71,11 @@ public class AssignmentExpression extends ExpressionStatement
 				if(listexp.index.statementType != StatementType.NUMBER) throw new RuntimeException();
 				int index = (int) listexp.index.OnExecute(rt, null).toLong();
 				list.Set(index, val);
+			}else if(_obj.objType == LuneObjectType.MAP)
+			{
+				LuneMapObject map = (LuneMapObject)_obj;
+				LuneObject index = listexp.index.OnExecute(rt, null);
+				map.Set(index, val);
 			}
 			return _obj;
 		}else

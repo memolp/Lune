@@ -1,6 +1,7 @@
 package org.jeff.lune.object;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class LuneListObject extends LuneObject 
@@ -32,7 +33,16 @@ public class LuneListObject extends LuneObject
 
 	public void Set(int index, LuneObject val) 
 	{
-		this.elements_.set(index, val);
+		int size = this.elements_.size();
+		if(size > index)
+			this.elements_.set(index, val);
+		else
+		{
+			for(int i = size-1; i < index; i++)
+			{
+				this.elements_.add(val);
+			}
+		}
 	}
 
 	public int GetSize() 
@@ -53,5 +63,10 @@ public class LuneListObject extends LuneObject
 	public LuneObject nextElement() 
 	{
 		return this.elements_.get(iterIndex++);
+	}
+	
+	public Iterator<LuneObject> iterator()
+	{
+		return this.elements_.iterator();
 	}
 }

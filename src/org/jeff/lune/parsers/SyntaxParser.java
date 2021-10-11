@@ -9,12 +9,12 @@ import org.jeff.lune.parsers.exps.BinaryExpression;
 import org.jeff.lune.parsers.exps.CallExpression;
 import org.jeff.lune.parsers.exps.FunctionExpression;
 import org.jeff.lune.parsers.exps.IndexExpression;
-import org.jeff.lune.parsers.exps.ListExpression;
-import org.jeff.lune.parsers.exps.MapExpression;
 import org.jeff.lune.parsers.exps.MemberExpression;
 import org.jeff.lune.parsers.exps.ParamsExpression;
 import org.jeff.lune.parsers.exps.UnaryExpression;
 import org.jeff.lune.parsers.objs.IdentifierStatement;
+import org.jeff.lune.parsers.objs.ListStatement;
+import org.jeff.lune.parsers.objs.MapSatement;
 import org.jeff.lune.parsers.objs.NumberStatement;
 import org.jeff.lune.parsers.objs.StringStatement;
 import org.jeff.lune.token.Token;
@@ -277,11 +277,26 @@ public class SyntaxParser
 				{
 					continue;
 				}
-				
 				// 变量
 				if(token.tokenType == TokenType.IDENTIFIER)
 				{
 					left = new IdentifierStatement(token);
+					Token next_token = this.GetToken();
+					if(next_token.tokenType == TokenType.OP_DOT)
+					{
+						MemberExpression meb = new MemberExpression();
+						meb.parent = left;
+						Statement child = this.statement_parser(true);
+						if(child == null)
+						{
+							throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
+						}
+						meb.child = child;
+						left = meb;
+					}else
+					{
+						this.PutToken();
+					}
 					break;
 				}// 字符串
 				else if(token.tokenType == TokenType.STRING)
@@ -296,7 +311,7 @@ public class SyntaxParser
 				}// 列表
 				else if(token.tokenType == TokenType.LBRACK)  //[
 				{
-					ListExpression nlist = new ListExpression();
+					ListStatement nlist = new ListStatement();
 					do
 					{
 						// 解析每个元素
@@ -321,7 +336,7 @@ public class SyntaxParser
 				}// 字典
 				else if(token.tokenType == TokenType.LCURLY) //{
 				{
-					MapExpression ndict = new MapExpression();
+					MapSatement ndict = new MapSatement();
 					do
 					{
 							// 先获取key

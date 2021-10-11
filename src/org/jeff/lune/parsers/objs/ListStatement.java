@@ -1,4 +1,4 @@
-package org.jeff.lune.parsers.exps;
+package org.jeff.lune.parsers.objs;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -6,14 +6,13 @@ import java.util.List;
 import org.jeff.lune.LuneRuntime;
 import org.jeff.lune.object.LuneListObject;
 import org.jeff.lune.object.LuneObject;
-import org.jeff.lune.parsers.ExpressionStatement;
 import org.jeff.lune.parsers.Statement;
 import org.jeff.lune.parsers.StatementType;
 
-public class ListExpression extends ExpressionStatement 
+public class ListStatement extends Statement 
 {
 	public List<Statement> elements = new LinkedList<Statement>();
-	public ListExpression()
+	public ListStatement()
 	{
 		this.statementType = StatementType.LIST_OBJECT;
 	}

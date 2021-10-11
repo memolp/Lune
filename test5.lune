@@ -1,0 +1,45 @@
+
+People = class("People")    # 声明类
+People.ctor = function(name, age){
+    this.Name = name
+    this.Age = age
+}
+People.Say = function(){
+    print(this.Name, "BA", this.Age, "HAH")
+}
+Worker = class("People-Worker", People) # 继承
+Worker.ctor = function(name, age, zy){
+    People.ctor(name, age)
+    this.ZY = zy
+}
+Worker.Say = function(){
+    print(string.format("I am %s, %s years old, I work in %s", this.Name, this.Age, this.ZY))
+    People.Say()
+}
+Worker.Run = function(callback){
+    print(this.Name, " Run....")
+    this.Age = this.Age + 1
+    callback(this.Name, this.Age)
+}
+Worker.GetAge = function(){return this.Age}
+John = Worker("John", 20, "建筑师")  # 创建实例
+Lily = Worker("Lily", 18, "理发师")
+LvWa = People("Luwa", 99999)
+John.Say()
+Lily.Say()
+LvWa.Say()
+Lily.Run(function(n,a){print(n, "run after", a)})
+Developer = class("Developer-Worker", Worker)
+Developer.Say = function(){
+    Worker.Say()
+    if(this.Age > 20){
+        print("wait ...........", "i am Engineer.")
+    }else{
+        print("wait ...........", "i am Newbee.")
+    }
+}
+Developer.Lam = function(){ return function(d, c){ print("Lam.....", d, c)}}
+Zhang = Developer("Zhang", 13, "程序员")
+Zhang.Say()
+b = Zhang.Lam()
+b("zhe", "ok")
