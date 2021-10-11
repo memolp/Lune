@@ -1,7 +1,9 @@
 package org.jeff.lune;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.jeff.lune.object.LuneObject;
 
@@ -58,6 +60,20 @@ public class LuneNamespace
 		mNamespaces.put(name, value);
 	}
 	/**
+	 * 将另一个的命名空间拷贝
+	 * @param n
+	 */
+	public void UpdateNamespace(LuneNamespace n)
+	{
+		Iterator<Entry<String, LuneObject>> iter = n.mNamespaces.entrySet().iterator();
+		Entry<String, LuneObject> val;
+		while(iter.hasNext())
+		{
+			val = iter.next();
+			this.AddSymbol(val.getKey(), val.getValue());
+		}
+	}
+	/**
 	 * 获取符号对象
 	 * @param name
 	 * @return
@@ -75,12 +91,5 @@ public class LuneNamespace
 			}
 		}
 		return null;
-	}
-	
-	public boolean IsInFunctionNamespace()
-	{
-		if(this.mNameType == LuneNamespaceType.FUNCTION) return true;
-		if(this.mParent != null) return this.mParent.IsInFunctionNamespace();
-		return false;
 	}
 }

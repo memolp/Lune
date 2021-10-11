@@ -38,8 +38,12 @@ Developer.Say = function(){
         print("wait ...........", "i am Newbee.")
     }
 }
-Developer.Lam = function(){ return function(d, c){ print("Lam.....", d, c)}}
+Developer.Lam = function(a){ return function(d, c){ print("Lam.....",a, d, c, this.Name)}}  
 Zhang = Developer("Zhang", 13, "程序员")
 Zhang.Say()
-b = Zhang.Lam()
+b = Zhang.Lam("ssss")
 b("zhe", "ok")
+
+Mao = Developer("Mao", 19, "程序员")
+c = Mao.Lam("xxx")
+c("?", "d")

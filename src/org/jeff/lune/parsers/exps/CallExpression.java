@@ -9,6 +9,7 @@ import org.jeff.lune.LuneRuntime;
 import org.jeff.lune.object.LuneClassInstance;
 import org.jeff.lune.object.LuneClassObject;
 import org.jeff.lune.object.LuneExecuteable;
+import org.jeff.lune.object.LuneFunction;
 import org.jeff.lune.object.LuneObject;
 import org.jeff.lune.object.LuneObjectType;
 import org.jeff.lune.parsers.ExpressionStatement;
@@ -104,10 +105,15 @@ public class CallExpression extends ExpressionStatement
 			}
 			return obj;
 		}
-		else
+		else if(func.objType == LuneObjectType.FUNCTION)
 		{
-			FunctionExpression func_ = (FunctionExpression) func.GetValue();
+			LuneFunction func_obj = (LuneFunction)func;
+			FunctionExpression func_ = (FunctionExpression) func_obj.GetValue();
 			LuneNamespace temp_func_namespace = new LuneNamespace(LuneNamespaceType.FUNCTION, rt.CurrentNamespace());
+			if(func_obj.namespace != null)
+			{
+				temp_func_namespace.UpdateNamespace(func_obj.namespace);
+			}
 			List<LuneObject> args = new LinkedList<LuneObject>();
 			LuneObject temp_args = null;
 			// 处理传参部分
@@ -150,6 +156,9 @@ public class CallExpression extends ExpressionStatement
 			// 函数执行完成后移除命名空间
 			rt.PopNamespace();
 			return res;
+		}else
+		{
+			throw new RuntimeException();
 		}
 	}
 }
