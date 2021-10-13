@@ -7,12 +7,13 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.jeff.lune.object.LuneClassFunc;
-import org.jeff.lune.object.LuneImportFunc;
 import org.jeff.lune.object.LuneObject;
-import org.jeff.lune.object.LunePrintFunc;
-import org.jeff.lune.object.LuneRangeFunc;
-import org.jeff.lune.object.LuneStringModule;
-import org.jeff.lune.object.LuneTableModule;
+import org.jeff.lune.object.imp.LuneImportFunc;
+import org.jeff.lune.object.imp.LuneMathModule;
+import org.jeff.lune.object.imp.LunePrintFunc;
+import org.jeff.lune.object.imp.LuneRangeFunc;
+import org.jeff.lune.object.imp.LuneStringModule;
+import org.jeff.lune.object.imp.LuneTableModule;
 import org.jeff.lune.parsers.SyntaxParser;
 import org.jeff.lune.parsers.exps.BlockStatementType;
 import org.jeff.lune.parsers.exps.IndexExpression;
@@ -50,6 +51,7 @@ public class LuneRuntime
 		mGlobalNamespaces.AddSymbol("range", new LuneRangeFunc());  // 类似py的rang
 		mGlobalNamespaces.AddSymbol("string", new LuneStringModule()); //字符串模块
 		mGlobalNamespaces.AddSymbol("table", new LuneTableModule());  // table模块
+		mGlobalNamespaces.AddSymbol("math", new LuneMathModule()); // math模块
 		mCurrentNamespaces = mGlobalNamespaces;
 	}
 	/**

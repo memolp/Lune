@@ -1,6 +1,11 @@
-package org.jeff.lune.object;
+package org.jeff.lune.object.imp;
 
 import org.jeff.lune.LuneRuntime;
+import org.jeff.lune.object.LuneExecuteable;
+import org.jeff.lune.object.LuneListObject;
+import org.jeff.lune.object.LuneMapObject;
+import org.jeff.lune.object.LuneObject;
+import org.jeff.lune.object.LuneObjectType;
 
 public class LuneTableModule extends LuneObject 
 {

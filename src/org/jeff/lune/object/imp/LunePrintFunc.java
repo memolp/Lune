@@ -1,6 +1,8 @@
-package org.jeff.lune.object;
+package org.jeff.lune.object.imp;
 
 import org.jeff.lune.LuneRuntime;
+import org.jeff.lune.object.LuneExecuteable;
+import org.jeff.lune.object.LuneObject;
 
 public class LunePrintFunc extends LuneExecuteable
 {
