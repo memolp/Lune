@@ -2,17 +2,40 @@ package org.jeff.lune.parsers.exps;
 
 import org.jeff.lune.LuneRuntime;
 import org.jeff.lune.object.LuneObject;
-import org.jeff.lune.parsers.ExpressionStatement;
-import org.jeff.lune.parsers.Statement;
-import org.jeff.lune.parsers.StatementType;
 
+/**
+ * 属性访问表达式
+ * @author 覃贵锋
+ *
+ */
 public class MemberExpression extends ExpressionStatement
 {
+	/** 父对象 */
 	public Statement parent;
+	/** 子对象 */
 	public Statement child;
-	public MemberExpression()
+	
+	/**
+	 * 属性访问
+	 * @param line
+	 * @param col
+	 */
+	public MemberExpression(int line, int col)
 	{
-			this.statementType = StatementType.MEMBER;
+		super(StatementType.MEMBER, line, col);
+	}
+	
+	@Override
+	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
+	{
+		// 先获取父对象
+		LuneObject obj = rt.GetLuneObject(parent, object);
+		if(obj == null) 
+		{
+			throw new RuntimeException();
+		}
+		// 再执行子对象表达式-并将父对象传入
+		return this.child.OnExecute(rt, obj);
 	}
 	
 	@Override
@@ -27,14 +50,4 @@ public class MemberExpression extends ExpressionStatement
 		return sb.toString();
 	}
 
-	@Override
-	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
-	{
-		LuneObject obj = rt.GetLuneObject(parent, object);
-		if(obj == null) 
-		{
-			throw new RuntimeException();
-		}
-		return this.child.OnExecute(rt, obj);
-	}
 }

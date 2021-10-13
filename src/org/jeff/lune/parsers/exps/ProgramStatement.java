@@ -1,4 +1,4 @@
-package org.jeff.lune.parsers;
+package org.jeff.lune.parsers.exps;
 
 
 /**
@@ -13,10 +13,9 @@ public class ProgramStatement extends BlockStatement
 	/**
 	 * 程序语句块，没有其他的功能
 	 */
-	public ProgramStatement(String srcFile)
+	public ProgramStatement(String srcFile, int line, int col)
 	{
-		super(BlockStatementType.PROGRAM_BLOCK);
+		super(BlockStatementType.PROGRAM_BLOCK, line, col);
 		this.sourceFile = srcFile;
-		this.statementType = StatementType.BLOCK;
 	}
 }

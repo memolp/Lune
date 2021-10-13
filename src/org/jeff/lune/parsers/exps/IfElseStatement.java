@@ -1,21 +1,31 @@
-package org.jeff.lune.parsers;
+package org.jeff.lune.parsers.exps;
 
 import org.jeff.lune.LuneRuntime;
 import org.jeff.lune.object.LuneObject;
 
+/**
+ * 条件分支表达式
+ * if(xx){} elif(xx) {} else{}
+ * @author 覃贵锋
+ *
+ */
 public class IfElseStatement extends Statement
 {
+	/** 条件表达式 */
 	public Statement condition = null;
+	/** 其他分支记录 */
 	public IfElseStatement Switch = null;
+	/** 当前分支的语句块 */
 	public BlockStatement body;
 	/**
 	 * 需要指定语句类型
 	 * @param stype
 	 */
-	public IfElseStatement(StatementType stype)
+	public IfElseStatement(StatementType stype, int line, int col)
 	{
-		this.statementType = stype;
+		super(stype, line, col);
 	}
+	
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
@@ -40,7 +50,7 @@ public class IfElseStatement extends Statement
 					throw new RuntimeException();
 				}
 			}
-		}else
+		}else // 否则ELSE条件不需要判断条件，执行运行
 		{
 			return this.body.OnExecute(rt, null);
 		}

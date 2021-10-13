@@ -12,11 +12,12 @@ test = function(arg1)
 		print(">>>>>>>>>>>>>>")
 	}
 	print( string.format("s=%sm, v=%s %s", a, d, Test_1_Name))
+	Test_1_Name = "zxxxx"
 }
 
 
 i = 0
-while(i < 5)
+while(i < 5 && false)
 {
 	i = i +1
 	print(string.format("w::::%s", i))
@@ -32,6 +33,10 @@ while(i < 5)
 	}
 	
 }
-test(4)
+if(true)
+{
+  test(4)	
+}
+
 print("dd")
 print(Test_1_Name)

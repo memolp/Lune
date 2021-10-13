@@ -1,27 +1,29 @@
-package org.jeff.lune.parsers;
+package org.jeff.lune.parsers.exps;
 
 import org.jeff.lune.LuneRuntime;
 import org.jeff.lune.object.LuneFunction;
 import org.jeff.lune.object.LuneObject;
 import org.jeff.lune.object.LuneObjectType;
 
+/**
+ * return 语句表达式
+ * @author 覃贵锋
+ *
+ */
 public class ReturnStatement extends Statement
 {
-	public Statement expression;
-	public ReturnStatement()
+	/** return 后面是可以接表达式的，因此需要记录 */
+	public Statement expression = null;
+	/**
+	 * return 表达式
+	 * @param line
+	 * @param col
+	 */
+	public ReturnStatement(int line, int col)
 	{
-		this.statementType = StatementType.RETURN;
+		super(StatementType.RETURN, line, col);
 	}
 	
-	@Override
-	public String toString()
-	{
-		StringBuilder sb = new StringBuilder();
-		sb.append("return ");
-		sb.append(expression.toString());
-		return sb.toString();
-	}
-
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
@@ -35,4 +37,14 @@ public class ReturnStatement extends Statement
 		}
 		return res;
 	}
+	
+	@Override
+	public String toString()
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append("return ");
+		sb.append(expression.toString());
+		return sb.toString();
+	}
+
 }

@@ -17,7 +17,7 @@ public class LuneListObject extends LuneObject
 	public LuneListObject(List<LuneObject> v)
 	{
 		this.objType = LuneObjectType.LIST;
-		this.elements_ =  new ArrayList<LuneObject>();
+		this.elements_ =  v;
 		this.value_  = this.elements_;
 	}
 	

@@ -1,20 +1,55 @@
 package org.jeff.lune.parsers.exps;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.jeff.lune.LuneRuntime;
 import org.jeff.lune.object.LuneFunction;
 import org.jeff.lune.object.LuneObject;
-import org.jeff.lune.parsers.BlockStatement;
-import org.jeff.lune.parsers.ExpressionStatement;
-import org.jeff.lune.parsers.StatementType;
 
+/**
+ * 函数声明表达式
+ * @author 覃贵锋
+ *
+ */
 public class FunctionExpression extends ExpressionStatement 
 {
-	public String funcName;
+	/** 函数的内部体 */
 	public BlockStatement body;
-	public ParamsExpression params;
-	public FunctionExpression()
+	/** 函数声明的形参列表 */
+	public List<Statement> params;
+	/**
+	 * 函数声明
+	 * @param line
+	 * @param col
+	 */
+	public FunctionExpression(int line, int col)
 	{
-		this.statementType = StatementType.FUNCTION;
+		super(StatementType.FUNCTION, line, col);
+		this.params = new LinkedList<Statement>();
+	}
+	
+	@Override
+	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
+	{
+		// 注意函数声明的运行之后生成函数对象
+		return new LuneFunction(this);
+	}
+	/**
+	 * 这个才是函数调用的时候执行的真正逻辑
+	 * @param rt
+	 * @param object
+	 * @return
+	 */
+	public LuneObject OnFunctionCall(LuneRuntime rt, LuneObject object)
+	{
+		// 执行函数内部的语句
+		LuneObject res = this.body.OnExecute(rt, null);
+		// 重置全部打断标记
+		rt.IsReturnFlag = false;
+		rt.IsBreakFlag = false;
+		rt.IsContinueFlag = false;
+		return res;
 	}
 	
 	@Override
@@ -30,18 +65,4 @@ public class FunctionExpression extends ExpressionStatement
 		return sb.toString();
 	}
 
-	@Override
-	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
-	{
-		return new LuneFunction(this);
-	}
-	
-	public LuneObject OnFunctionCall(LuneRuntime rt, LuneObject object)
-	{
-		LuneObject res = this.body.OnExecute(rt, null);
-		rt.IsReturnFlag = false;
-		rt.IsBreakFlag = false;
-		rt.IsContinueFlag = false;
-		return res;
-	}
 }

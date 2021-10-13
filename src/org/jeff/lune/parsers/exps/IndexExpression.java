@@ -5,38 +5,36 @@ import org.jeff.lune.object.LuneListObject;
 import org.jeff.lune.object.LuneMapObject;
 import org.jeff.lune.object.LuneObject;
 import org.jeff.lune.object.LuneObjectType;
-import org.jeff.lune.parsers.ExpressionStatement;
-import org.jeff.lune.parsers.Statement;
-import org.jeff.lune.parsers.StatementType;
 
+/**
+ * 下标访问表达式
+ * @author 覃贵锋
+ *
+ */
 public class IndexExpression extends ExpressionStatement
 {
+	/** 下标的父对象 */
 	public Statement object;
+	/** 下标的索引对象 */
 	public Statement index;
-	public IndexExpression()
+	/**
+	 * 下标访问
+	 * @param line
+	 * @param col
+	 */
+	public IndexExpression(int line, int col)
 	{
-		this.statementType = StatementType.INDEX;
+		super(StatementType.INDEX, line, col);
 	}
 	
 	@Override
-	public String toString()
-	{
-		StringBuilder sb = new StringBuilder();
-		sb.append(object.toString());
-		sb.append("[");
-		sb.append(index.toString());
-		sb.append("]");
-		return sb.toString();
-	}
-
-	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object_) 
 	{
+		// 下标访问只有列表和字典支持
 		LuneObject res = rt.GetLuneObject(this.object, object_);
 		if(res == null) throw new RuntimeException();
 		if(res.objType == LuneObjectType.LIST )
 		{
-			if(this.index.statementType != StatementType.NUMBER) throw new RuntimeException();
 			LuneListObject list_ = (LuneListObject)res;
 			LuneObject index_ = this.index.OnExecute(rt, null);
 			return list_.Get((int) index_.toLong());
@@ -49,5 +47,16 @@ public class IndexExpression extends ExpressionStatement
 		{
 			throw new RuntimeException();
 		}
+	}
+	
+	@Override
+	public String toString()
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append(object.toString());
+		sb.append("[");
+		sb.append(index.toString());
+		sb.append("]");
+		return sb.toString();
 	}
 }

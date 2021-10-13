@@ -2,19 +2,35 @@ package org.jeff.lune.parsers.objs;
 
 import org.jeff.lune.LuneRuntime;
 import org.jeff.lune.object.LuneObject;
-import org.jeff.lune.parsers.Statement;
-import org.jeff.lune.parsers.StatementType;
-import org.jeff.lune.token.Token;
+import org.jeff.lune.parsers.exps.Statement;
+import org.jeff.lune.parsers.exps.StatementType;
 
+/**
+ * 数字常量
+ * @author 覃贵锋
+ *
+ */
 public class NumberStatement extends Statement
 {
-	public double value;
-	public NumberStatement(Token token)
+	/** 数字对象 */
+	public double value = 0.0f;
+	/**
+	 * 数字常量-统一为double
+	 * @param val
+	 * @param line
+	 * @param col
+	 */
+	public NumberStatement(String val, int line, int col)
 	{
-		this.value = Double.parseDouble(token.tokenStr);
-		this.startLine = token.tokenLine;
-		this.startColoumn = token.tokenCol;
-		this.statementType = StatementType.NUMBER;
+		super(StatementType.NUMBER, line, col);
+		this.value = Double.parseDouble(val);
+	}
+	
+	@Override
+	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
+	{
+		// 数字常量不可能是object引出的
+		return new LuneObject(value);
 	}
 	
 	@Override
@@ -23,9 +39,4 @@ public class NumberStatement extends Statement
 		return String.valueOf(this.value);
 	}
 
-	@Override
-	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
-	{
-		return new LuneObject(value);
-	}
 }

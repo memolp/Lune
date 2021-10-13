@@ -10,26 +10,36 @@ public enum TokenType
 	COMMENT,
 	/** 标识符 */
 	IDENTIFIER,
-	/** 数字 */
+	/** 数字-统一用浮点数 */
 	NUMBER,
-	/** 十六进制 */
-	HEXNUMBER,
 	/** 字符串  */
 	STRING,
+	/** 布尔值 */
+	BOOLEAN,
 	/** 操作符 + */
 	OP_PLUS,
+	/** += 操作 */
+	OP_PLUS_ASSIGN,
 	/** 操作符 - */
 	OP_MINUS,
+	/** -= 操作 */
+	OP_MINUS_ASSIGN,
 	/** 操作符 * */
 	OP_MULTI,
+	/** *= 操作*/
+	OP_MULTI_ASSIGN,
 	/** 操作符 / */
 	OP_DIV,
+	/** /= 操作  */
+	OP_DIV_ASSIGN,
 	/** 操作符 % */
 	OP_MOD,
+	/** %= 操作 */
+	OP_MOD_ASSIGN,
 	/** 操作符 . */
 	OP_DOT,
 	/** 操作符 = */
-	OP_ASSSIGN,
+	OP_ASSIGN,
 	/** 操作符 == */
 	OP_EQ,
 	/** 操作符 != */

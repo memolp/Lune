@@ -1,14 +1,6 @@
 package org.jeff.lune;
 
-import java.io.BufferedReader;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.jeff.lune.parsers.ProgramStatement;
-import org.jeff.lune.parsers.Statement;
-import org.jeff.lune.parsers.SyntaxParser;
 
 /**
  * 想做件大事，看能不能搞定。
@@ -42,10 +34,13 @@ public class LuneContext
 		{
 			return this.runtime_.execfile(filename);
 		}
-		
+		/**
+		 * 执行代码字符串
+		 * @param script
+		 * @return
+		 */
 		public Object execute(String script)
 		{
-			
-				return this.runtime_.execute(script);
+			return this.runtime_.execute(script);
 		}
 }

@@ -2,23 +2,38 @@ package org.jeff.lune.parsers.exps;
 
 import org.jeff.lune.LuneRuntime;
 import org.jeff.lune.object.LuneObject;
-import org.jeff.lune.parsers.ExpressionStatement;
-import org.jeff.lune.parsers.Statement;
-import org.jeff.lune.parsers.StatementType;
 import org.jeff.lune.token.TokenType;
 
+/**
+ * 二元表达式
+ * @author 覃贵锋
+ *
+ */
 public class BinaryExpression extends ExpressionStatement 
 {
+	/** 运算符类型 */
 	public TokenType opType;
+	/** 运算符 */
 	public String op;
+	/** 优先级-越小越优先 */
 	public int opValue;
+	/** 左操作数 */
 	public Statement left;
+	/** 右操作数 */
 	public Statement right;
-	public BinaryExpression(TokenType type, String opn)
+	/**
+	 * 二元（双目）运算
+	 * @param type
+	 * @param opn
+	 * @param line
+	 * @param col
+	 */
+	public BinaryExpression(TokenType type, String opn, int line, int col)
 	{
+		super(StatementType.EXPRESSION_BINARY, line, col);
+		// 这里会根据操作的类型计算优先级
 		this.opType = type;
 		this.op = opn;
-		this.statementType = StatementType.EXPRESSION_BINARY;
 		switch(type)
 		{
 			case OP_BIT_NOT:
@@ -66,46 +81,40 @@ public class BinaryExpression extends ExpressionStatement
 				this.opValue = 0;
 		}
 	}
-	
-	@Override
-	public String toString() 
-	{
-		StringBuilder sb = new StringBuilder();
-		sb.append("(");
-		sb.append(this.left.toString());
-		sb.append(this.op);
-		sb.append(this.right.toString());
-		sb.append(")");
-		return sb.toString();
-	}
 
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
-		// a.x + b.z
+		// 获取左右操作数的对象
 		LuneObject obj1 = this.left.OnExecute(rt, null);
 		LuneObject obj2 = this.right.OnExecute(rt, null);
+		
+		// TODO 这里没有做类型检查，需要加上才好
 		LuneObject res = new LuneObject();
 		switch(this.opType)
 		{
+			// 四则混合运算
 			case  OP_PLUS:
-		 		res.SetValue(obj1.toNumber() + obj2.toNumber());
-		 		return res;
+		 		res.SetValue(obj1.toNumber() + obj2.toNumber()); return res;
 		 	case OP_MINUS:
-		 		res.SetValue(obj1.toNumber() -  obj2.toNumber());
-		 		return res;
+		 		res.SetValue(obj1.toNumber() -  obj2.toNumber()); return res;
 		 	case OP_MULTI:
-		 		res.SetValue(obj1.toNumber() * obj2.toNumber());
-		 		return res;
+		 		res.SetValue(obj1.toNumber() * obj2.toNumber()); return res;
 		 	case OP_DIV:
-		 		res.SetValue(obj1.toNumber() / obj2.toNumber());
-		 		return res;
+		 		res.SetValue(obj1.toNumber() / obj2.toNumber()); return res;
 		 	case OP_MOD:
-		 		res.SetValue(obj1.toNumber() % obj2.toNumber());
-		 		return res;
+		 		res.SetValue(obj1.toNumber() % obj2.toNumber()); return res;
+		 	// 位运算 - 只能操作整形数
 		 	case OP_BIT_AND:
-		 		res.SetValue(obj1.toLong() & obj2.toLong());
-		 		return res;
+		 		res.SetValue(obj1.toLong() & obj2.toLong());	 return res;
+		 	case OP_BIT_OR:
+		 		res.SetValue(obj1.toLong() | obj2.toLong());	 return res;
+		 	case OP_BIT_LEFT:
+		 		res.SetValue(obj1.toLong() << obj2.toLong()); return res;
+		 	case OP_BIT_RIGHT:
+		 		res.SetValue(obj1.toLong() >> obj2.toLong());  return res;
+		 	case OP_BIT_XOR:
+		 		res.SetValue(obj1.toLong() ^ obj2.toLong());  return res;
 		 	// 比较运算符
 		 	case OP_GT:
 		 		res.SetValue(obj1.toNumber() > obj2.toNumber());
@@ -125,7 +134,7 @@ public class BinaryExpression extends ExpressionStatement
 		 	case OP_NE:
 		 		res.SetValue(!obj1.equals(obj2));
 		 		return res;
-		 	// 连接运算符
+		    // 连接运算符
 		 	case OP_AND:
 		 		if(obj1.toBool() && obj2.toBool())
 		 			res.SetValue(true);
@@ -143,6 +152,18 @@ public class BinaryExpression extends ExpressionStatement
 		 	default:
 		 		throw new RuntimeException();
 		}
+	}
+	
+	@Override
+	public String toString() 
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append("(");
+		sb.append(this.left.toString());
+		sb.append(this.op);
+		sb.append(this.right.toString());
+		sb.append(")");
+		return sb.toString();
 	}
 }
 

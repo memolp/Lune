@@ -5,9 +5,6 @@ import org.jeff.lune.object.LuneListObject;
 import org.jeff.lune.object.LuneMapObject;
 import org.jeff.lune.object.LuneObject;
 import org.jeff.lune.object.LuneObjectType;
-import org.jeff.lune.parsers.ExpressionStatement;
-import org.jeff.lune.parsers.Statement;
-import org.jeff.lune.parsers.StatementType;
 import org.jeff.lune.parsers.objs.IdentifierStatement;
 
 /**
@@ -24,19 +21,9 @@ public class AssignmentExpression extends ExpressionStatement
 	/**
 	 * 赋值表达式
 	 */
-	public AssignmentExpression()
+	public AssignmentExpression(int line, int col)
 	{
-		this.statementType = StatementType.ASSIGNMENT;
-	}
-	
-	@Override
-	public String toString() 
-	{
-		StringBuilder sb = new StringBuilder();
-		sb.append(variable.toString());
-		sb.append(" = ");
-		sb.append(value.toString());
-		return sb.toString();
+		super(StatementType.ASSIGNMENT, line, col);
 	}
 
 	@Override
@@ -54,13 +41,20 @@ public class AssignmentExpression extends ExpressionStatement
 			}
 			if(object == null)
 			{
-				rt.CurrentNamespace().AddSymbol(idt.name, val);
+				// 处理一下重新赋值全局变量
+				LuneObject gval = rt.CurrentNamespace().GetSymbol(idt.name);
+				if(gval == null)
+					rt.CurrentNamespace().AddSymbol(idt.name, val);
+				else
+					gval.SetValue(val);
 			}else
 			{
 				object.SetAttribute(idt.name, val);
 			}
 			return val;
-		}else if(variable.statementType == StatementType.INDEX)
+		}
+		// 对列表和字典的赋值
+		else if(variable.statementType == StatementType.INDEX)
 		{
 			IndexExpression listexp = (IndexExpression)variable;
 			LuneObject _obj = rt.GetLuneObject(listexp.object, object);
@@ -68,12 +62,14 @@ public class AssignmentExpression extends ExpressionStatement
 			if(_obj.objType == LuneObjectType.LIST)
 			{
 				LuneListObject list = (LuneListObject)_obj;
-				if(listexp.index.statementType != StatementType.NUMBER) throw new RuntimeException();
+				// 获取下标
 				int index = (int) listexp.index.OnExecute(rt, null).toLong();
 				list.Set(index, val);
-			}else if(_obj.objType == LuneObjectType.MAP)
+			}
+			else if(_obj.objType == LuneObjectType.MAP)
 			{
 				LuneMapObject map = (LuneMapObject)_obj;
+				// 获取key
 				LuneObject index = listexp.index.OnExecute(rt, null);
 				map.Set(index, val);
 			}
@@ -82,5 +78,15 @@ public class AssignmentExpression extends ExpressionStatement
 		{
 			throw new RuntimeException();
 		}
+	}
+	
+	@Override
+	public String toString() 
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append(variable.toString());
+		sb.append(" = ");
+		sb.append(value.toString());
+		return sb.toString();
 	}
 }

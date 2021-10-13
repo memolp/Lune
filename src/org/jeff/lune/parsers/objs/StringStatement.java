@@ -2,24 +2,34 @@ package org.jeff.lune.parsers.objs;
 
 import org.jeff.lune.LuneRuntime;
 import org.jeff.lune.object.LuneObject;
-import org.jeff.lune.parsers.Statement;
-import org.jeff.lune.parsers.StatementType;
-import org.jeff.lune.token.Token;
+import org.jeff.lune.parsers.exps.Statement;
+import org.jeff.lune.parsers.exps.StatementType;
 
 /**
- * 字符串节点
- * @author JeffXun
+ * 字符串常量表达式
+ * @author 覃贵锋
  *
  */
 public class StringStatement extends Statement
 {
 	public String value;
-	public StringStatement(Token token)
+	/**
+	 * 字符串常量表达式
+	 * @param val
+	 * @param line
+	 * @param col
+	 */
+	public StringStatement(String val, int line, int col)
 	{
-			this.value = token.tokenStr;
-			this.startLine = token.tokenLine;
-			this.startColoumn = token.tokenCol;
-			this.statementType = StatementType.STRING;
+		super(StatementType.STRING, line, col);
+		this.value = val;
+	}
+	
+	@Override
+	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
+	{
+		// 创建字符串对象
+		return new LuneObject(value);
 	}
 	
 	@Override
@@ -28,9 +38,4 @@ public class StringStatement extends Statement
 		return this.value;
 	}
 
-	@Override
-	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
-	{
-		return new LuneObject(value);
-	}
 }
