@@ -49,24 +49,23 @@ public class LuneListObject extends LuneObject
 	{
 		return this.elements_.size();
 	}
-
-	private int iterIndex = 0;
-	public void beginIter()
-	{
-		this.iterIndex = 0;
-	}
-	public boolean hasNext() 
-	{
-		return iterIndex < this.elements_.size();
-	}
-
-	public LuneObject nextElement() 
-	{
-		return this.elements_.get(iterIndex++);
-	}
 	
 	public Iterator<LuneObject> iterator()
 	{
 		return this.elements_.iterator();
+	}
+	
+	@Override
+	public String toString()
+	{
+		StringBuilder sb = new StringBuilder();
+		//sb.append("[");
+		for(LuneObject obj : this.elements_)
+		{
+			sb.append(obj.toString());
+			//sb.append(",");
+		}
+		//sb.append("]");
+		return sb.toString();
 	}
 }

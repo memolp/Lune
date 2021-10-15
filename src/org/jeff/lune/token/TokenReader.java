@@ -209,7 +209,7 @@ public class TokenReader
 			{
 				AppendChar(b);
 				continue;
-			}else if(b == '_')
+			}else if(b == UNDER)
 			{
 				AppendChar(b);
 				continue;
@@ -414,7 +414,7 @@ public class TokenReader
 			{
 				return this.ParseNumber(b);
 			}
-			if(isAlpha(b))
+			if(isAlpha(b) || b == UNDER)
 			{
 				return this.ParseIdentify(b);
 			}

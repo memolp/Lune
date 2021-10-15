@@ -51,10 +51,10 @@ public class BlockStatement extends Statement
 				break;
 			// 赋值语句
 			if(state.statementType == StatementType.ASSIGNMENT)
-				state.OnExecute(rt, object);
+				res = state.OnExecute(rt, object);
 			// 属性调用 -- 这种一般是继续执行，例如 a.b() a.b =c等之类的
 			else if(state.statementType == StatementType.MEMBER)
-				state.OnExecute(rt, object);
+				res = state.OnExecute(rt, object);
 			// if语句，内部执行的时候就会自动进行分支判断
 			else if(state.statementType == StatementType.IF)
 				state.OnExecute(rt, object);
@@ -66,10 +66,10 @@ public class BlockStatement extends Statement
 				state.OnExecute(rt, object);
 			// index下标访问-主要是列表和字典 - 其行为类似MEMBER
 			else if(state.statementType == StatementType.INDEX)
-				state.OnExecute(rt, object);
+				res = state.OnExecute(rt, object);
 			// 函数调用
 			else if(state.statementType == StatementType.FUNCCALL)
-				state.OnExecute(rt, object);
+				res = state.OnExecute(rt, object);
 			// 二元表达式
 			else if(state.statementType == StatementType.EXPRESSION_BINARY)
 				res = state.OnExecute(rt, object);

@@ -3,6 +3,7 @@ package org.jeff.lune;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.StringReader;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -161,7 +162,7 @@ public class LuneRuntime
 	 * @param filename
 	 * @throws FileNotFoundException
 	 */
-	public Object execfile(String filename) throws FileNotFoundException
+	public LuneObject execfile(String filename) throws FileNotFoundException
 	{
 		// 创建Buffer执行Token解析和语法树构建
 		BufferedReader reader = new BufferedReader(new FileReader(filename));
@@ -169,14 +170,17 @@ public class LuneRuntime
 		parser.parser();
 		
 		ProgramStatement s = parser.GetProgram();
-		s.OnExecute(this, null);
-		 return null;
+		return s.OnExecute(this, null);
 	}
 	
-	public Object execute(String script)
+	public LuneObject execute(String script)
 	{
+		StringReader reader = new StringReader(script);
+		SyntaxParser parser = new SyntaxParser(reader, "<STRING>");
+		parser.parser();
 		
-			return null;
+		ProgramStatement s = parser.GetProgram();
+		return s.OnExecute(this, null);
 	}
 	
 	List<BlockStatementType> mBlockTypeStack = new LinkedList<BlockStatementType>();
