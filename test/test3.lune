@@ -1,27 +1,11 @@
 
-ddd = class("ddd")
-ddd.x = 3
-ddd.y = 4
-ddd.call = function()
+cur = time.clock()
+i = 0
+total = 0
+while( i < 100000000)
 {
-    return 33
+    total = total + i
+    i = i + 1
 }
-a = [1,2,3]
-a[2] = 10
-a[5] = 15
-print(a[1] + a[2] + ddd.x + ddd.call() + 5)
-print(table.len(a))
-#for(i in a)
-#{
-#	print(i)
-#}
-
-#for(i in xrange(5,10, 2))
-#{
-#	print(i)
-#}
-
-#for(i in xrange(10,0 , -3))
-#{
-#	print(i)
-#}
+end = time.clock()
+print("cost:============", end - cur)

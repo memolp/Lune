@@ -15,6 +15,7 @@ import org.jeff.lune.object.imp.LunePrintFunc;
 import org.jeff.lune.object.imp.LuneRangeFunc;
 import org.jeff.lune.object.imp.LuneStringModule;
 import org.jeff.lune.object.imp.LuneTableModule;
+import org.jeff.lune.object.imp.LuneTimeModule;
 import org.jeff.lune.parsers.SyntaxParser;
 import org.jeff.lune.parsers.exps.BlockStatementType;
 import org.jeff.lune.parsers.exps.IndexExpression;
@@ -53,6 +54,7 @@ public class LuneRuntime
 		mGlobalNamespaces.AddSymbol("string", new LuneStringModule()); //字符串模块
 		mGlobalNamespaces.AddSymbol("table", new LuneTableModule());  // table模块
 		mGlobalNamespaces.AddSymbol("math", new LuneMathModule()); // math模块
+		mGlobalNamespaces.AddSymbol("time",  new LuneTimeModule()); // time模块
 		mCurrentNamespaces = mGlobalNamespaces;
 	}
 	/**

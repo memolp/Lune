@@ -2,8 +2,6 @@ package org.jeff.lune.token;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Token读取器
@@ -273,7 +271,7 @@ public class TokenReader
 	 */
 	Token ParseString(int c)
 	{
-//		AppendChar(c);
+		//AppendChar(c);
 		current_type_ = TokenType.STRING;
 		int cache_lineno = lineno_;
 		int cache_col = column_;
@@ -294,19 +292,21 @@ public class TokenReader
 				}
 				throw new RuntimeException(String.format(UNEXPECTEDSYMBOL, b, filename_, lineno_, column_));
 			}
+			// 处理转义情况
+			if(b == '\\')
+			{
+				int next = GetChar();
+				if(next == EOF)
+				{
+					throw new RuntimeException();
+				}
+				AppendChar(next);
+				continue;
+			}
 			if(b == c) // '' or ""
 			{
-				// 处理 " \" " or ' \' '
-				if(current_sb_.charAt(current_sb_.length()-1) == '\\')
-				{
-					AppendChar(b);
-					continue;
-				}else
-				{
-					//End b
-//					AppendChar(b);
-					break;
-				}
+				//AppendChar(b);
+				break;
 			}
 			AppendChar(b);
 		}while(true);
@@ -388,7 +388,7 @@ public class TokenReader
 	 * 获取Token，内部处理区分字符串，数字，标识符等
 	 * @return
 	 */
-	Token GetToken()
+	public Token GetToken()
 	{
 		current_sb_ = new StringBuilder();
 		current_type_ = TokenType.UNKOWN;
@@ -562,23 +562,5 @@ public class TokenReader
 			}
 			throw new RuntimeException(String.format(UNEXPECTEDSYMBOL, b, filename_, lineno_, column_));
 		}
-	}
-	/**
-	 * 解析并返回全部的Token
-	 * @return
-	 */
-	public List<Token> tokenizer()
-	{
-		List<Token> tokens = new ArrayList<Token>();
-		Token temp = null;
-		do
-		{
-			temp = GetToken();
-			if(temp == null) break;
-			// 注释不参与后续的语法树创建
-			if(temp.tokenType == TokenType.COMMENT) continue;
-			tokens.add(temp);
-		}while(true);
-		return tokens;	
 	}
 }

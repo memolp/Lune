@@ -7,6 +7,7 @@ import org.jeff.lune.parsers.exps.StatementType;
 
 /**
  * 字符串常量表达式
+ * TODO 需要处理 " ", "\"" , '"', "''" 单双引号组合转义的显示以及UTF8格式
  * @author 覃贵锋
  *
  */

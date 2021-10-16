@@ -89,9 +89,6 @@ public class SyntaxParser
 	 */
 	public void parser()
 	{
-		this.tokens_ = this.tokenReader_.tokenizer();
-		this.tokenIndex_ = 0;
-		this.tokenSize_ = this.tokens_.size();
 		// 创建程序语句块
 		program_ = new ProgramStatement(this.file_, -1, -1);
 		this.block_parser(program_);
@@ -658,23 +655,34 @@ public class SyntaxParser
 		}
 		return bin;
 	}
+	Token ahead_token_ = null;
+	Token curr_token = null;
 	/**
 	 * 获取一个token
 	 * @return
 	 */
 	public Token GetToken()
 	{
-		if(tokenIndex_ < tokenSize_)
+		if(ahead_token_ != null)
 		{
-			return tokens_.get(tokenIndex_++);
+			Token t = ahead_token_;
+			ahead_token_ = null;
+			curr_token =  t;
+		}else
+		{
+			do
+			{
+				curr_token = tokenReader_.GetToken();
+			}while(curr_token != null && curr_token.tokenType == TokenType.COMMENT);
 		}
-		return null;
+		return curr_token;
 	}
 	/**
 	 * 放回一个token
 	 */
 	public void PutToken()
 	{
-		tokenIndex_ -= 1;
+		ahead_token_ = curr_token;
+		curr_token = null;
 	}
 }

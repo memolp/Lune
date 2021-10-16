@@ -24,7 +24,7 @@ public class LuneTableModule extends LuneObject
 			if(args[0].objType == LuneObjectType.LIST)
 			{
 				LuneListObject list = (LuneListObject) args[0];
-				int size = list.GetSize();
+				int size = list.Size();
 				return new LuneObject(size);
 			}else if(args[0].objType == LuneObjectType.MAP)
 			{

@@ -32,13 +32,13 @@ public class LuneRangeFunc extends LuneExecuteable
 		{
 			for(long i = start; i < end;  i += step)
 			{
-				range.Push(new LuneObject(i));
+				range.Append(new LuneObject(i));
 			}
 		}else
 		{
 			for(long i = start; i > end;  i += step)
 			{
-				range.Push(new LuneObject(i));
+				range.Append(new LuneObject(i));
 			}
 		}
 		return range;

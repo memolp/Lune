@@ -45,7 +45,7 @@ public class ListStatement extends Statement
 		{
 			// 每个元素本身也要通过执行来生成对象
 			LuneObject obj= state.OnExecute(rt, null);
-			list.Push(obj);
+			list.Append(obj);
 		}
 		return list;
 	}
