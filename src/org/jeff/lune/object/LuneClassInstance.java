@@ -1,6 +1,6 @@
 package org.jeff.lune.object;
 
-public class LuneClassInstance extends LuneObject
+public class LuneClassInstance extends LunePropertyObject
 {
 	private LuneClassObject class_;
 	public LuneClassInstance(LuneClassObject cls)

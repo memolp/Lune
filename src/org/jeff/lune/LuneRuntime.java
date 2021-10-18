@@ -18,14 +18,10 @@ import org.jeff.lune.object.imp.LuneTableModule;
 import org.jeff.lune.object.imp.LuneTimeModule;
 import org.jeff.lune.parsers.SyntaxParser;
 import org.jeff.lune.parsers.exps.BlockStatementType;
-import org.jeff.lune.parsers.exps.IndexExpression;
 import org.jeff.lune.parsers.exps.MemberExpression;
-import org.jeff.lune.parsers.exps.ProgramStatement;
 import org.jeff.lune.parsers.exps.Statement;
 import org.jeff.lune.parsers.exps.StatementType;
 import org.jeff.lune.parsers.objs.IdentifierStatement;
-import org.jeff.lune.parsers.objs.NumberStatement;
-import org.jeff.lune.parsers.objs.StringStatement;
 
 /**
  * Lune运行时
@@ -84,6 +80,9 @@ public class LuneRuntime
 			{  // object的属性变量
 				return object.GetAttribute(idt.name);
 			}
+		}else
+		{
+			return state.OnExecute(this,  null);
 		}
 		// 属性访问类型obj.vals
 		/*else if(state.statementType == StatementType.MEMBER)
@@ -96,17 +95,17 @@ public class LuneRuntime
 			return this.GetLuneObject(idx.object, object);
 		}*/
 		// 数字
-		else if(state.statementType == StatementType.NUMBER)
-		{
-			return new LuneObject(((NumberStatement)state).value);
-		}else if(state.statementType == StatementType.STRING)
-		{
-			return new LuneObject(((StringStatement)state).value);
-		}
-		else
-		{
-			throw new RuntimeException();
-		}
+		//else if(state.statementType == StatementType.NUMBER)
+		//{
+			//return new LuneObject(((NumberStatement)state).value);
+	//	}//else if(state.statementType == StatementType.STRING)
+	//	{
+			//return new LuneObject(((StringStatement)state).value);
+	//	}
+		//else
+	//	{
+			//throw new RuntimeException();
+	//	}
 	}
 	
 	public LuneObject GetMember(MemberExpression exp, LuneObject object)
@@ -168,21 +167,17 @@ public class LuneRuntime
 	{
 		// 创建Buffer执行Token解析和语法树构建
 		BufferedReader reader = new BufferedReader(new FileReader(filename));
-		SyntaxParser parser = new SyntaxParser(reader, filename);
+		SyntaxParser parser = new SyntaxParser(this, reader, filename);
 		parser.parser();
-		
-		ProgramStatement s = parser.GetProgram();
-		return s.OnExecute(this, null);
+		return parser.Execute();
 	}
 	
 	public LuneObject execute(String script)
 	{
 		StringReader reader = new StringReader(script);
-		SyntaxParser parser = new SyntaxParser(reader, "<STRING>");
+		SyntaxParser parser = new SyntaxParser(this, reader, "<STRING>");
 		parser.parser();
-		
-		ProgramStatement s = parser.GetProgram();
-		return s.OnExecute(this, null);
+		return parser.Execute();
 	}
 	
 	List<BlockStatementType> mBlockTypeStack = new LinkedList<BlockStatementType>();
@@ -205,5 +200,23 @@ public class LuneRuntime
 		}
 		return false;
 	}
-	
+	/**
+	 * 运行时异常
+	 * @param fmt
+	 * @param args
+	 */
+	public void RuntimeError(String fmt, Object...args)
+	{
+		throw new RuntimeException(String.format(fmt, args));
+	}
+	/**
+	 * 语法错误-将直接退出
+	 * @param fmt
+	 * @param args
+	 */
+	public void SyntaxError(String fmt, Object...args)
+	{
+		System.err.println(String.format(fmt, args));
+		System.exit(1);
+	}
 }

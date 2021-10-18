@@ -6,8 +6,9 @@ import org.jeff.lune.LuneRuntime;
 import org.jeff.lune.object.LuneExecuteable;
 import org.jeff.lune.object.LuneObject;
 import org.jeff.lune.object.LuneObjectType;
+import org.jeff.lune.object.LunePropertyObject;
 
-public class LuneTimeModule extends LuneObject
+public class LuneTimeModule extends LunePropertyObject
 {
 	public LuneTimeModule()
 	{
@@ -54,7 +55,7 @@ public class LuneTimeModule extends LuneObject
 		{
 			try
 			{
-				Thread.sleep(args[0].toLong());
+				Thread.sleep(args[0].longValue());
 			}catch (Exception e) {
 			}
 			return null;

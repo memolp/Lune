@@ -20,12 +20,12 @@ public class LuneImportFunc extends LuneExecuteable
 		LuneObject file = args[0];
 		if(file.objType != LuneObjectType.STRING) throw new RuntimeException();
 		
-		String filename = file.toString() + ".lune";
+		String filename = file.strValue() + ".lune";
 		try {
 			rt.execfile(filename);
 		} catch (FileNotFoundException e) 
 		{
-			throw new RuntimeException();
+			rt.RuntimeError("file:%s not found", filename);
 		}
 		return null;
 	}

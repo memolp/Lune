@@ -38,7 +38,7 @@ public class UnaryExpression extends ExpressionStatement
 				res.SetValue(! res.toBool());
 				return res;
 			case OP_BIT_NOT:
-				res.SetValue(~res.toLong());
+				res.SetValue(~res.longValue());
 				return res;
 			default:
 				throw new RuntimeException();

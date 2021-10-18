@@ -25,20 +25,24 @@ public class IdentifierStatement extends Statement
 	 * @param line
 	 * @param col
 	 */
-	public IdentifierStatement(String val, int line, int col)
+	public IdentifierStatement(String val)
 	{
-		super(StatementType.IDENTIFIER, line, col);
+		super(StatementType.IDENTIFIER, -1, -1);
 		this.name = val;
 	}
 	
+	public LuneObject cache_value = null;
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
+		//TODO a = a + a 这种会执行3次查找，因此需要优化。（查完缓存，只有在赋值后修改）
 		// 变量标识符主要用于查找对象
 		if(object == null)
 		{
-			// 没有object时，去命名空间查
-			return rt.CurrentNamespace().GetSymbol(this.name);
+			// 没有object时，去命名空间查 -- 先不缓存，这个逻辑目前写有问题
+			//if(cache_value == null) // 并且先判断缓存
+			cache_value =  rt.CurrentNamespace().GetSymbol(this.name);
+			return cache_value;
 		}else
 		{
 			// 有object则通过属性查

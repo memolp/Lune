@@ -1,8 +1,11 @@
 package org.jeff.lune.parsers;
 
 import java.io.Reader;
+import java.util.LinkedList;
 import java.util.List;
 
+import org.jeff.lune.LuneRuntime;
+import org.jeff.lune.object.LuneObject;
 import org.jeff.lune.parsers.exps.AssignmentExpression;
 import org.jeff.lune.parsers.exps.BinaryExpression;
 import org.jeff.lune.parsers.exps.BlockStatement;
@@ -26,7 +29,6 @@ import org.jeff.lune.parsers.objs.IdentifierStatement;
 import org.jeff.lune.parsers.objs.ListStatement;
 import org.jeff.lune.parsers.objs.MapSatement;
 import org.jeff.lune.parsers.objs.NumberStatement;
-import org.jeff.lune.parsers.objs.StringStatement;
 import org.jeff.lune.token.Token;
 import org.jeff.lune.token.TokenReader;
 import org.jeff.lune.token.TokenType;
@@ -54,33 +56,31 @@ import org.jeff.lune.token.TokenType;
  */
 public class SyntaxParser
 {
-	/** 当前文件的token列表-排除了注释的 */
-	List<Token> tokens_;
-	/** 当前索引的地址 */
-	int tokenIndex_;
-	/** 总tokens数量 */
-	int tokenSize_;
+	private static final String UNEXPCETED_SYMBOL = "syntax error , unexpceted symbol `%s` at %s:%s";
+	private static final String EXPCETED_SYMBOL = "syntax error, `%s` expceted at %s:%s";
+	private static final String CODE_ERROR = "syntax error, code error at %s:%s";
+	
 	/** Token读取器 */
-	TokenReader tokenReader_;
+	private TokenReader tokenReader_;
+	/** 记录上一个Token */
+	private Token ahead_token_ = null;
+	/** 当前的Token */
+	private Token curr_token = null;
 	/** 文件名称 */
-	String file_;
+	private String file_;
 	/** 当前文件的语句体 */
-	ProgramStatement program_;
-	/**
-	 * 获取当前文件的语句体
-	 * @return
-	 */
-	public ProgramStatement GetProgram()
-	{
-		return program_;
-	}
+	private ProgramStatement program_;
+	/** Lune 运行时 */
+	private LuneRuntime luneRT_;
 	/**
 	 * 创建语法解析器
-	 * @param reader
-	 * @param filename
+	 * @param rt  运行时
+	 * @param reader  支持mark 和 reset
+	 * @param filename  文件名
 	 */
-	public SyntaxParser(Reader reader, String filename)
+	public SyntaxParser(LuneRuntime rt, Reader reader, String filename)
 	{
+		this.luneRT_ = rt;
 		this.tokenReader_ = new TokenReader(reader, filename);
 		this.file_ = filename;
 	}
@@ -89,12 +89,32 @@ public class SyntaxParser
 	 */
 	public void parser()
 	{
+		this.currentStPool_ = new StatementPool();
 		// 创建程序语句块
 		program_ = new ProgramStatement(this.file_, -1, -1);
 		this.block_parser(program_);
+		// 解析完成后就清理数据
+		this.curr_token = null;
+		this.ahead_token_= null;
+		this.currentStPool_ = null;
+		this.mStatementPool.clear();
+		this.tokenReader_ = null;
+	}
+	
+	StatementPool currentStPool_ = null;
+	List<StatementPool> mStatementPool = new LinkedList<StatementPool>();
+	private void PushPool(StatementPool st) 
+	{
+		mStatementPool.add(currentStPool_);
+		currentStPool_ = st;
 	}
 
-	static final String SYNTAX_ERROR = "syntax error , unexpceted `%s`, line:%s, column:%s";
+	private void PopPool() 
+	{
+		if(!mStatementPool.isEmpty())
+			currentStPool_ = mStatementPool.remove(mStatementPool.size() - 1);
+	}
+
 	/**
 	 * 语句块解析
 	 * @param block
@@ -109,43 +129,85 @@ public class SyntaxParser
 		}while(true);
 	}
 	
+	/**
+	 * 函数声明解析（解析参数和函数体内部）
+	 * @param function
+	 */
 	void function_parser(FunctionExpression function)
 	{
-		// 函数仅支持 xx.x.xx = function()
-		Token next_token = this.GetToken();
-		if(next_token.tokenType != TokenType.LPAREN)
+		// 创建函数的变量池，并设置为当前变量池
+		this.PushPool(new StatementPool());
+		do
 		{
-			throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
-		}
-		this.function_params_parser(function.params);
-		next_token = this.GetToken();
-		if(next_token.tokenType != TokenType.LCURLY)
-		{
-			throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
-		}
-		BlockStatement body = new BlockStatement(BlockStatementType.FUNCTION_BLOCK, next_token.tokenLine, next_token.tokenCol);
-		this.block_parser(body);
-		function.body = body;
-		next_token = this.GetToken();
-		if(next_token == null || next_token.tokenType != TokenType.RCURLY)
-		{
-			throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
-		}
+			// 函数仅支持 xx.x.xx = function()
+			Token next_token = this.GetToken();
+			// 判空
+			if(next_token == null)
+			{
+				this.luneRT_.SyntaxError(EXPCETED_SYMBOL,  "(", this.file_, function.startLine);
+				break;
+			}
+			// 函数后面紧跟括号 暂时不支持函数名放function后面。
+			if(next_token.tokenType != TokenType.LPAREN)
+			{
+				this.luneRT_.SyntaxError(UNEXPCETED_SYMBOL,  next_token.tokenStr, this.file_, next_token.tokenLine);
+				return;
+			}
+			this.function_params_parser(function);
+			next_token = this.GetToken();
+			// 判空
+			if(next_token == null)
+			{
+				this.luneRT_.SyntaxError(EXPCETED_SYMBOL,  "{", this.file_, function.startLine);
+				return;
+			}
+			// 函数体包含在{}之间
+			if(next_token.tokenType != TokenType.LCURLY)
+			{
+				this.luneRT_.SyntaxError(UNEXPCETED_SYMBOL,  next_token.tokenStr, this.file_, next_token.tokenLine);
+				return;
+			}
+			BlockStatement body = new BlockStatement(BlockStatementType.FUNCTION_BLOCK, next_token.tokenLine, next_token.tokenCol);
+			this.block_parser(body);
+			function.body = body;
+			next_token = this.GetToken();
+			if(next_token == null)
+			{
+				this.luneRT_.SyntaxError(EXPCETED_SYMBOL,  "}", this.file_, function.startLine);
+				return;
+			}
+			if(next_token.tokenType != TokenType.RCURLY)
+			{
+				this.luneRT_.SyntaxError(UNEXPCETED_SYMBOL,  next_token.tokenStr, this.file_, next_token.tokenLine);
+				return;
+			}
+		}while(false);
+		// 弹出当前的变量池
+		this.PopPool();
 	}
 	/**
 	 * 函数的参数，只能是简单的变量
 	 * @return
 	 */
-	void function_params_parser(List<Statement> params)
+	void function_params_parser(FunctionExpression func)
 	{
+		List<Statement> params = func.params;
 		do
 		{
 			Token token = this.GetToken();
+			// 防空
+			if(token == null)
+			{
+				this.luneRT_.SyntaxError(CODE_ERROR, this.file_,  func.startLine);
+				return;
+			}
+			// 找到右括号则结束
 			if(token.tokenType == TokenType.RPAREN )
 				break;
+			// 函数的参数只能是变量标识符
 			if(token.tokenType == TokenType.IDENTIFIER)
 			{
-				IdentifierStatement idt = new IdentifierStatement(token.tokenStr, token.tokenLine, token.tokenCol);
+				IdentifierStatement idt = this.currentStPool_.CreateIdentifierStatement(token.tokenStr);
 				params.add(idt);
 			}
 			token = this.GetToken();
@@ -157,7 +219,8 @@ public class SyntaxParser
 				break;
 			}else
 			{
-				throw new RuntimeException(String.format(SYNTAX_ERROR, token.tokenStr, token.tokenLine, token.tokenCol));
+				this.luneRT_.SyntaxError(UNEXPCETED_SYMBOL,  token.tokenStr, this.file_, token.tokenLine);
+				return;
 			}
 		}while(true);
 	}
@@ -168,39 +231,74 @@ public class SyntaxParser
 	void for_loop_parser(ForLoopStatement for_state)
 	{
 		Token token = this.GetToken();
+		// 防空
+		if(token == null)
+		{
+			this.luneRT_.SyntaxError(EXPCETED_SYMBOL, "(", this.file_, for_state.startLine);
+			return;
+		}
+		// for 后面紧接(
 		if(token.tokenType  != TokenType.LPAREN)
-			throw new RuntimeException(String.format(SYNTAX_ERROR, token.tokenStr, token.tokenLine, token.tokenCol));
+		{
+			this.luneRT_.SyntaxError(UNEXPCETED_SYMBOL, token.tokenStr, this.file_, token.tokenLine);
+			return;
+		}
 		do
 		{
 			Token next_token = this.GetToken();
-			if(next_token.tokenType ==TokenType.IDENTIFIER)
+			if(next_token == null)
 			{
-				IdentifierStatement idt = new IdentifierStatement(next_token.tokenStr, next_token.tokenLine, next_token.tokenCol);
-				for_state.params.add(idt);
-			}else
-			{
-				throw new RuntimeException();
+				this.luneRT_.SyntaxError(CODE_ERROR, this.file_,  for_state.startLine);
+				return;
 			}
-			next_token = this.GetToken();
 			if(next_token.tokenType == TokenType.COMMA)
 				continue;
-			if(next_token.tokenType == TokenType.KW_IN)
+			if(next_token.tokenType ==TokenType.IDENTIFIER)
+			{
+				IdentifierStatement idt = this.currentStPool_.CreateIdentifierStatement(next_token.tokenStr);
+				for_state.params.add(idt);
+			}
+			else if(next_token.tokenType == TokenType.KW_IN)
 			{
 				break;
 			}
+			else
+			{
+				this.luneRT_.SyntaxError(UNEXPCETED_SYMBOL, next_token.tokenStr, this.file_, next_token.tokenLine);
+				return;
+			}
 		}while(true);
+		// 被迭代的对象
 		Statement iter = this.statement_parser(false);
+		if(iter == null)
+		{
+			this.luneRT_.SyntaxError(CODE_ERROR, this.file_,  for_state.startLine);
+			return;
+		}
 		for_state.iterObject = iter;
 		Token next_token = this.GetToken();
-		if(next_token.tokenType != TokenType.RPAREN) throw new RuntimeException();
+		// 必须是）
+		if(next_token == null || next_token.tokenType != TokenType.RPAREN)
+		{
+			this.luneRT_.SyntaxError(EXPCETED_SYMBOL, ")", this.file_,  for_state.startLine);
+			return;
+		}
 		next_token = this.GetToken();
-		if(next_token.tokenType != TokenType.LCURLY) throw new RuntimeException();
+		// 必须是{
+		if(next_token == null || next_token.tokenType != TokenType.LCURLY)
+		{
+			this.luneRT_.SyntaxError(EXPCETED_SYMBOL, "{", this.file_,  for_state.startLine);
+			return;
+		}
 		BlockStatement body = new BlockStatement(BlockStatementType.LOOP_BLOCK, next_token.tokenLine, next_token.tokenCol);
 		this.block_parser(body);
 		for_state.body = body;
 		next_token = this.GetToken();
-		if(next_token.tokenType != TokenType.RCURLY)
-			throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
+		if(next_token == null || next_token.tokenType != TokenType.RCURLY)
+		{
+			this.luneRT_.SyntaxError(EXPCETED_SYMBOL, "}", this.file_,  for_state.startLine);
+			return;
+		}
 	}
 	/**
 	 * while解析
@@ -209,22 +307,34 @@ public class SyntaxParser
 	void  while_loop_parser(WhileStatement wstate)
 	{
 		Token token = this.GetToken();
-		if(token.tokenType  != TokenType.LPAREN)
-			throw new RuntimeException(String.format(SYNTAX_ERROR, token.tokenStr, token.tokenLine, token.tokenCol));
+		if(token == null || token.tokenType  != TokenType.LPAREN)
+		{
+			this.luneRT_.SyntaxError(EXPCETED_SYMBOL, "(", this.file_,  wstate.startLine);
+			return;
+		}
 		Statement exp = this.statement_parser(false);
 		wstate.condition = exp;
 		Token next_token = this.GetToken();
-		if(next_token.tokenType != TokenType.RPAREN)
-			throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
+		if(token == null || next_token.tokenType != TokenType.RPAREN)
+		{
+			this.luneRT_.SyntaxError(EXPCETED_SYMBOL, ")", this.file_,  wstate.startLine);
+			return;
+		}
 		next_token = this.GetToken();
-		if(next_token.tokenType != TokenType.LCURLY)
-			throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
+		if(token == null || next_token.tokenType != TokenType.LCURLY)
+		{
+			this.luneRT_.SyntaxError(EXPCETED_SYMBOL, "{", this.file_,  wstate.startLine);
+			return;
+		}
 		BlockStatement body =  new BlockStatement(BlockStatementType.LOOP_BLOCK, next_token.tokenLine, next_token.tokenCol);
 		this.block_parser(body);
 		wstate.body = body;
 		next_token = this.GetToken();
-		if(next_token.tokenType != TokenType.RCURLY)
-			throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
+		if(next_token == null || next_token.tokenType != TokenType.RCURLY)
+		{
+			this.luneRT_.SyntaxError(EXPCETED_SYMBOL, "{", this.file_,  wstate.startLine);
+			return;
+		}
 	}
 	/**
 	 * if分支条件解析
@@ -236,23 +346,35 @@ public class SyntaxParser
 		if(!no_codition)
 		{
 			Token token = this.GetToken();
-			if(token.tokenType  != TokenType.LPAREN)
-				throw new RuntimeException(String.format(SYNTAX_ERROR, token.tokenStr, token.tokenLine, token.tokenCol));
+			if(token == null || token.tokenType  != TokenType.LPAREN)
+			{
+				this.luneRT_.SyntaxError(EXPCETED_SYMBOL, "(", this.file_,  if_state.startLine);
+				return;
+			}
 			Statement exp = this.statement_parser(false);
 			if_state.condition = exp;
 			Token next_token = this.GetToken();
-			if(next_token.tokenType != TokenType.RPAREN)
-				throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
+			if(next_token == null || next_token.tokenType != TokenType.RPAREN)
+			{
+				this.luneRT_.SyntaxError(EXPCETED_SYMBOL, ")", this.file_,  if_state.startLine);
+				return;
+			}
 		}
 		Token next_token = this.GetToken();
-		if(next_token.tokenType != TokenType.LCURLY)
-			throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
+		if(next_token == null || next_token.tokenType != TokenType.LCURLY)
+		{
+			this.luneRT_.SyntaxError(EXPCETED_SYMBOL, "{", this.file_,  if_state.startLine);
+			return;
+		}
 		BlockStatement body =  new BlockStatement(BlockStatementType.IFELSE_BLOCK, next_token.tokenLine, next_token.tokenCol);
 		this.block_parser(body);
 		if_state.body = body;
 		next_token = this.GetToken();
-		if(next_token.tokenType != TokenType.RCURLY)
-			throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
+		if(next_token == null || next_token.tokenType != TokenType.RCURLY)
+		{
+			this.luneRT_.SyntaxError(EXPCETED_SYMBOL, "}", this.file_,  if_state.startLine);
+			return;
+		}
 		next_token = this.GetToken();
 		// 如果有elif分支
 		if(next_token.tokenType ==TokenType.KW_ELIF)
@@ -304,7 +426,7 @@ public class SyntaxParser
 				// 变量
 				if(token.tokenType == TokenType.IDENTIFIER)
 				{
-					left = new IdentifierStatement(token.tokenStr, token.tokenLine, token.tokenCol);
+					left = this.currentStPool_.CreateIdentifierStatement(token.tokenStr);
 					Token next_token = this.GetToken();
 					// 需要针对属性访问做特殊处理
 					if(next_token.tokenType == TokenType.OP_DOT)
@@ -314,7 +436,8 @@ public class SyntaxParser
 						Statement child = this.statement_parser(true);
 						if(child == null)
 						{
-							throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
+							this.luneRT_.SyntaxError(CODE_ERROR, this.file_,  next_token.tokenLine);
+							return null;
 						}
 						meb.child = child;
 						left = meb;
@@ -326,12 +449,13 @@ public class SyntaxParser
 				}// 字符串
 				else if(token.tokenType == TokenType.STRING)
 				{
-					left = new StringStatement(token.tokenStr, token.tokenLine, token.tokenCol);
+					left = this.currentStPool_.CreateStringStatement(token.tokenStr);
 					break;
 				}// 数字
 				else if(token.tokenType == TokenType.NUMBER)
 				{
-					left = new NumberStatement(token.tokenStr, token.tokenLine, token.tokenCol); 
+					double v = Double.parseDouble(token.tokenStr);
+					left = this.currentStPool_.CreateNumberStatement(v);
 					break;
 				}// 列表
 				else if(token.tokenType == TokenType.LBRACK)  //[
@@ -348,6 +472,10 @@ public class SyntaxParser
 						
 						// 看下一个元素是,还是]
 						Token next_token = this.GetToken();
+						if(next_token == null)
+						{
+							this.luneRT_.SyntaxError(CODE_ERROR,  this.file_, token.tokenLine);
+						}
 						if(next_token.tokenType == TokenType.COMMA)
 						{
 							continue;
@@ -371,17 +499,20 @@ public class SyntaxParser
 								Token next_token = this.GetToken();
 								if(next_token == null )
 								{
-									throw new RuntimeException(String.format(SYNTAX_ERROR, key.toString(), key.startLine, key.startColoumn));
+									this.luneRT_.SyntaxError(CODE_ERROR,  this.file_, token.tokenLine);
+									return null;
 								}
 								if(next_token.tokenType != TokenType.COLON)
 								{
-									throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
+									this.luneRT_.SyntaxError(UNEXPCETED_SYMBOL, next_token.tokenStr, this.file_, next_token.tokenLine);
+									return null;
 								}
 								// 获取值
 								Statement value = this.statement_parser(false);
 								if(value == null) //不可没有值
 								{
-									throw new RuntimeException(String.format(SYNTAX_ERROR, key.toString(), key.startLine, key.startColoumn));
+									this.luneRT_.SyntaxError(CODE_ERROR,  this.file_, next_token.tokenLine);
+									return null;
 								}
 								ndict.Add(key, value);
 							}
@@ -389,7 +520,8 @@ public class SyntaxParser
 							Token next_token = this.GetToken();
 							if(next_token == null )
 							{
-								throw new RuntimeException(String.format(SYNTAX_ERROR, key.toString(), key.startLine, key.startColoumn));
+								this.luneRT_.SyntaxError(CODE_ERROR,  this.file_, token.tokenLine);
+								return null;
 							}
 							if(next_token.tokenType == TokenType.COLON)
 								continue;
@@ -408,11 +540,13 @@ public class SyntaxParser
 					Token next_token = this.GetToken();
 					if(next_token == null )
 					{
-						throw new RuntimeException(String.format(SYNTAX_ERROR, left.toString(), left.startLine, left.startColoumn));
+						this.luneRT_.SyntaxError(CODE_ERROR,  this.file_, token.tokenLine);
+						return null;
 					}
 					else if(next_token.tokenType != TokenType.RPAREN)
 					{
-						throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
+						this.luneRT_.SyntaxError(EXPCETED_SYMBOL, ")", this.file_, next_token.tokenLine);
+						return null;
 					}
 					left.isWhole = true;
 				}
@@ -421,23 +555,29 @@ public class SyntaxParser
 				{
 					Statement value = this.statement_parser(true);
 					if(value == null)
-						throw new RuntimeException(String.format(SYNTAX_ERROR, token.tokenStr, token.tokenLine, token.tokenCol));
+					{
+						this.luneRT_.SyntaxError(UNEXPCETED_SYMBOL, token.tokenStr, this.file_, token.tokenLine);
+					}
 					left = new UnaryExpression(TokenType.OP_NOT, value, token.tokenLine, token.tokenCol);
 				}// 取反
 				else if(token.tokenType == TokenType.OP_BIT_XOR)
 				{
 					Statement value = this.statement_parser(true);
 					if(value == null)
-						throw new RuntimeException(String.format(SYNTAX_ERROR, token.tokenStr, token.tokenLine, token.tokenCol));
+					{
+						this.luneRT_.SyntaxError(UNEXPCETED_SYMBOL, token.tokenStr,  this.file_, token.tokenLine);
+					}
 					left = new UnaryExpression(TokenType.OP_NOT, value, token.tokenLine, token.tokenCol);
 				}// 取负数
 				else if(token.tokenType == TokenType.OP_MINUS)
 				{
 					Token next_token = this.GetToken();
-					if(next_token.tokenType != TokenType.NUMBER)
-						throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
-					NumberStatement num = new NumberStatement(next_token.tokenStr, next_token.tokenLine, next_token.tokenCol);
-					num.value = -num.value;
+					if(next_token == null || next_token.tokenType != TokenType.NUMBER)
+					{
+						this.luneRT_.SyntaxError(UNEXPCETED_SYMBOL, token.tokenStr,  this.file_, token.tokenLine);
+					}
+					double v = Double.parseDouble(token.tokenStr);
+					NumberStatement num = this.currentStPool_.CreateNumberStatement(-v);
 					left = num;
 					break;
 				}// 函数
@@ -480,7 +620,7 @@ public class SyntaxParser
 					return left;
 				}else if(token.tokenType == TokenType.KW_TRUE || token.tokenType == TokenType.KW_FALSE)
 				{
-					BooleanStatement b = new BooleanStatement(token.tokenStr, token.tokenLine, token.tokenCol);
+					BooleanStatement b = this.currentStPool_.CreateBoolStatement(Boolean.parseBoolean(token.tokenStr));
 					left = b;
 					break;
 				}
@@ -498,7 +638,7 @@ public class SyntaxParser
 						case SEMICOLON:
 							break;
 						default:
-							throw new RuntimeException(String.format(SYNTAX_ERROR, token.tokenStr, token.tokenLine, token.tokenCol));
+							this.luneRT_.SyntaxError(UNEXPCETED_SYMBOL, token.tokenStr, this.file_, token.tokenLine);
 					}
 				}
 			} // ==== left end
@@ -526,7 +666,7 @@ public class SyntaxParser
 					Token next_tk = this.GetToken();
 					if(next_tk == null)
 					{
-						throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
+						this.luneRT_.SyntaxError(CODE_ERROR, this.file_, next_token.tokenLine);
 					}
 					if(next_tk.tokenType == TokenType.COMMA)
 					{
@@ -548,16 +688,16 @@ public class SyntaxParser
 				Statement child = this.statement_parser(false);
 				if(child == null)
 				{
-					throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
+					this.luneRT_.SyntaxError(CODE_ERROR, this.file_, next_token.tokenLine);
 				}
 				Token next = this.GetToken();
 				if(next == null)
 				{
-					throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
+					this.luneRT_.SyntaxError(CODE_ERROR, this.file_, next_token.tokenLine);
 				}
 				if(next.tokenType != TokenType.RBRACK)
 				{
-					throw new RuntimeException(String.format(SYNTAX_ERROR, next.tokenStr, next.tokenLine, next.tokenCol));
+					this.luneRT_.SyntaxError(EXPCETED_SYMBOL, "]", this.file_, next_token.tokenLine);
 				}
 				meb.index = child;
 				left = meb;
@@ -570,7 +710,9 @@ public class SyntaxParser
 				
 				Statement value = this.statement_parser(false);
 				if(value == null)
-					throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
+				{
+					this.luneRT_.SyntaxError(CODE_ERROR, this.file_, next_token.tokenLine);
+				}
 				assign.value = value;
 				left = assign;
 				break;
@@ -582,7 +724,7 @@ public class SyntaxParser
 				Statement child = this.statement_parser(true);
 				if(child == null)
 				{
-					throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
+					this.luneRT_.SyntaxError(CODE_ERROR, this.file_, next_token.tokenLine);
 				}
 				meb.child = child;
 				left = meb;
@@ -616,7 +758,9 @@ public class SyntaxParser
 				case OP_BIT_RIGHT:
 					right = this.statement_parser(true);
 					if(right == null)
-						throw new RuntimeException(String.format(SYNTAX_ERROR, next_token.tokenStr, next_token.tokenLine, next_token.tokenCol));
+					{
+						this.luneRT_.SyntaxError(CODE_ERROR, this.file_, next_token.tokenLine);
+					}
 					binExp.left = left;
 					binExp.right = right;
 					left = UpdateBinaryExpressionPriority(binExp);
@@ -655,13 +799,11 @@ public class SyntaxParser
 		}
 		return bin;
 	}
-	Token ahead_token_ = null;
-	Token curr_token = null;
 	/**
 	 * 获取一个token
 	 * @return
 	 */
-	public Token GetToken()
+	private Token GetToken()
 	{
 		if(ahead_token_ != null)
 		{
@@ -673,6 +815,7 @@ public class SyntaxParser
 			do
 			{
 				curr_token = tokenReader_.GetToken();
+				// 过滤注释
 			}while(curr_token != null && curr_token.tokenType == TokenType.COMMENT);
 		}
 		return curr_token;
@@ -680,9 +823,17 @@ public class SyntaxParser
 	/**
 	 * 放回一个token
 	 */
-	public void PutToken()
+	private void PutToken()
 	{
 		ahead_token_ = curr_token;
 		curr_token = null;
+	}
+	/**
+	 * 运行代码并返回结果
+	 * @return
+	 */
+	public LuneObject Execute()
+	{
+		return this.program_.OnExecute(this.luneRT_, null);
 	}
 }

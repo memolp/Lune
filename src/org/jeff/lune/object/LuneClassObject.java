@@ -1,7 +1,7 @@
 package org.jeff.lune.object;
 
 
-public class LuneClassObject extends LuneObject
+public class LuneClassObject extends LunePropertyObject
 {
 	private LuneClassObject base_;
 	public LuneClassObject(String className)
@@ -21,7 +21,7 @@ public class LuneClassObject extends LuneObject
 	LuneClassObject(LuneClassObject cls)
 	{
 		this.objType = LuneObjectType.CLASS;
-		this.value_ = cls.toString();
+		this.value_ = cls.strValue();
 		this.base_ = cls;
 	}
 	

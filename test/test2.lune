@@ -1,4 +1,5 @@
 import("test1")
+
 test = function(arg1)
 {
 	a = arg1

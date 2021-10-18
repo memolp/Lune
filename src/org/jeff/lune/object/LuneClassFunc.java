@@ -9,12 +9,12 @@ public class LuneClassFunc extends LuneExecuteable
 	public LuneObject Execute(LuneRuntime rt, LuneObject... args)
 	{
 		if(args.length < 2)
-			return new LuneClassObject(args[0].toString());
+			return new LuneClassObject(args[0].strValue());
 		else
 		{
 			LuneObject cls = args[1];
 			if(cls.objType != LuneObjectType.CLASS) throw new RuntimeException();
-			return new LuneClassObject(args[0].toString(), (LuneClassObject) cls);
+			return new LuneClassObject(args[0].strValue(), (LuneClassObject) cls);
 		}
 	}
 

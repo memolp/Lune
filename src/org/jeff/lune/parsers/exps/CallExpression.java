@@ -50,12 +50,12 @@ public class CallExpression extends ExpressionStatement
 		// Java 执行方法
 		if(func.objType == LuneObjectType.EXECUTEABLE)
 		{
-			int size = this.params.size() + (object == null ? 0: 1);
+			int size = this.params.size() + ((object != null && object.objType == LuneObjectType.INSTANCE) ? 1: 0);
 			// 先处理传参部分，将参数全部生成对象
 			LuneObject[] args = new LuneObject[size];
 			LuneObject temp_args = null;
 			int index = 0;
-			if(object != null)
+			if(object != null && object.objType == LuneObjectType.INSTANCE)
 			{
 				args[index ++] = object;
 			}

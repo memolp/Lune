@@ -80,7 +80,7 @@ public class LuneListWrapper extends LuneObject
 		{
 			LuneListObject list = (LuneListObject) args[0];
 			LuneObject index = args[1];
-			list.RemoveAt((int) index.toLong());
+			list.RemoveAt((int) index.longValue());
 			return null;
 		}
 	}
@@ -97,7 +97,7 @@ public class LuneListWrapper extends LuneObject
 			LuneListObject list = (LuneListObject) args[0];
 			LuneObject index = args[1];
 			LuneObject obj = args[2];
-			list.Insert((int) index.toLong(), obj);
+			list.Insert((int) index.longValue(), obj);
 			return null;
 		}
 	}

@@ -90,43 +90,44 @@ public class BinaryExpression extends ExpressionStatement
 		LuneObject obj2 = this.right.OnExecute(rt, null);
 		
 		// TODO 这里没有做类型检查，需要加上才好
+		// TODO 这里每次都会创建一个对象 例如 1+2+3 会创建两个对象，而不是整个表达式一个对象。待完善。
 		LuneObject res = new LuneObject();
 		switch(this.opType)
 		{
 			// 四则混合运算
 			case  OP_PLUS:
-		 		res.SetValue(obj1.toNumber() + obj2.toNumber()); return res;
+		 		res.SetValue(obj1.doubleValue() + obj2.doubleValue()); return res;
 		 	case OP_MINUS:
-		 		res.SetValue(obj1.toNumber() -  obj2.toNumber()); return res;
+		 		res.SetValue(obj1.doubleValue() -  obj2.doubleValue()); return res;
 		 	case OP_MULTI:
-		 		res.SetValue(obj1.toNumber() * obj2.toNumber()); return res;
+		 		res.SetValue(obj1.doubleValue() * obj2.doubleValue()); return res;
 		 	case OP_DIV:
-		 		res.SetValue(obj1.toNumber() / obj2.toNumber()); return res;
+		 		res.SetValue(obj1.doubleValue() / obj2.doubleValue()); return res;
 		 	case OP_MOD:
-		 		res.SetValue(obj1.toNumber() % obj2.toNumber()); return res;
+		 		res.SetValue(obj1.doubleValue() % obj2.doubleValue()); return res;
 		 	// 位运算 - 只能操作整形数
 		 	case OP_BIT_AND:
-		 		res.SetValue(obj1.toLong() & obj2.toLong());	 return res;
+		 		res.SetValue(obj1.longValue() & obj2.longValue());	 return res;
 		 	case OP_BIT_OR:
-		 		res.SetValue(obj1.toLong() | obj2.toLong());	 return res;
+		 		res.SetValue(obj1.longValue() | obj2.longValue());	 return res;
 		 	case OP_BIT_LEFT:
-		 		res.SetValue(obj1.toLong() << obj2.toLong()); return res;
+		 		res.SetValue(obj1.longValue() << obj2.longValue()); return res;
 		 	case OP_BIT_RIGHT:
-		 		res.SetValue(obj1.toLong() >> obj2.toLong());  return res;
+		 		res.SetValue(obj1.longValue() >> obj2.longValue());  return res;
 		 	case OP_BIT_XOR:
-		 		res.SetValue(obj1.toLong() ^ obj2.toLong());  return res;
+		 		res.SetValue(obj1.longValue() ^ obj2.longValue());  return res;
 		 	// 比较运算符
 		 	case OP_GT:
-		 		res.SetValue(obj1.toNumber() > obj2.toNumber());
+		 		res.SetValue(obj1.doubleValue() > obj2.doubleValue());
 		 		return res;
 		 	case OP_GE:
-		 		res.SetValue(obj1.toNumber() >= obj2.toNumber());
+		 		res.SetValue(obj1.doubleValue() >= obj2.doubleValue());
 		 		return res;
 		 	case OP_LT:
-		 		res.SetValue(obj1.toNumber() < obj2.toNumber());
+		 		res.SetValue(obj1.doubleValue() < obj2.doubleValue());
 		 		return res;
 		 	case OP_LE:
-		 		res.SetValue(obj1.toNumber() <= obj2.toNumber());
+		 		res.SetValue(obj1.doubleValue() <= obj2.doubleValue());
 		 		return res;
 		 	case OP_EQ:
 		 		res.SetValue(obj1.equals(obj2));

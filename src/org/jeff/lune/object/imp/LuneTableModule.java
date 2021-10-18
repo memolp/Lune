@@ -6,8 +6,9 @@ import org.jeff.lune.object.LuneListObject;
 import org.jeff.lune.object.LuneMapObject;
 import org.jeff.lune.object.LuneObject;
 import org.jeff.lune.object.LuneObjectType;
+import org.jeff.lune.object.LunePropertyObject;
 
-public class LuneTableModule extends LuneObject 
+public class LuneTableModule extends LunePropertyObject 
 {
 	public LuneTableModule()
 	{

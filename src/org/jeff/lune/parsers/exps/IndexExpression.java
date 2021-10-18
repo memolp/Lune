@@ -37,7 +37,7 @@ public class IndexExpression extends ExpressionStatement
 		{
 			LuneListObject list_ = (LuneListObject)res;
 			LuneObject index_ = this.index.OnExecute(rt, null);
-			return list_.Get((int) index_.toLong());
+			return list_.Get((int) index_.longValue());
 		}else if(res.objType == LuneObjectType.MAP)
 		{
 			LuneMapObject map_ = (LuneMapObject)res;

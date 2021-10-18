@@ -13,30 +13,29 @@ import org.jeff.lune.parsers.exps.StatementType;
 public class NumberStatement extends Statement
 {
 	/** 数字对象 */
-	public double value = 0.0f;
+	public LuneObject value;
 	/**
 	 * 数字常量-统一为double
 	 * @param val
 	 * @param line
 	 * @param col
 	 */
-	public NumberStatement(String val, int line, int col)
+	public NumberStatement(double val)
 	{
-		super(StatementType.NUMBER, line, col);
-		this.value = Double.parseDouble(val);
+		super(StatementType.NUMBER, -1, -1);
+		this.value = new LuneObject(val);
 	}
 	
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
-		// 数字常量不可能是object引出的
-		return new LuneObject(value);
+		return this.value;
 	}
 	
 	@Override
 	public String toString() 
 	{
-		return String.valueOf(this.value);
+		return this.value.toString();
 	}
 
 }

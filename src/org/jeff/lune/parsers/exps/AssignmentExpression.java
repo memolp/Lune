@@ -41,12 +41,8 @@ public class AssignmentExpression extends ExpressionStatement
 			}
 			if(object == null)
 			{
-				// 处理一下重新赋值全局变量
-				LuneObject gval = rt.CurrentNamespace().GetSymbol(idt.name);
-				if(gval == null)
-					rt.CurrentNamespace().AddSymbol(idt.name, val);
-				else
-					gval.SetValue(val);
+				//idt.cache_value = val;  // 缓存值
+				rt.CurrentNamespace().AddSymbol(idt.name, val);
 			}else
 			{
 				object.SetAttribute(idt.name, val);
@@ -63,7 +59,7 @@ public class AssignmentExpression extends ExpressionStatement
 			{
 				LuneListObject list = (LuneListObject)_obj;
 				// 获取下标
-				int index = (int) listexp.index.OnExecute(rt, null).toLong();
+				int index = (int) listexp.index.OnExecute(rt, null).longValue();
 				list.Set(index, val);
 			}
 			else if(_obj.objType == LuneObjectType.MAP)

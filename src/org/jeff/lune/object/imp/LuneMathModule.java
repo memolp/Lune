@@ -4,8 +4,9 @@ import org.jeff.lune.LuneRuntime;
 import org.jeff.lune.object.LuneExecuteable;
 import org.jeff.lune.object.LuneObject;
 import org.jeff.lune.object.LuneObjectType;
+import org.jeff.lune.object.LunePropertyObject;
 
-public class LuneMathModule extends LuneObject
+public class LuneMathModule extends LunePropertyObject
 {
 	public LuneMathModule()
 	{
@@ -19,7 +20,7 @@ public class LuneMathModule extends LuneObject
 		@Override
 		public LuneObject Execute(LuneRuntime rt, LuneObject... args)
 		{
-			double value = args[0].toNumber();
+			double value = args[0].doubleValue();
 			return new LuneObject(Math.floor(value));
 		}
 	}
@@ -30,7 +31,7 @@ public class LuneMathModule extends LuneObject
 		@Override
 		public LuneObject Execute(LuneRuntime rt, LuneObject... args)
 		{
-			double value = args[0].toNumber();
+			double value = args[0].doubleValue();
 			return new LuneObject(Math.ceil(value));
 		}
 	}

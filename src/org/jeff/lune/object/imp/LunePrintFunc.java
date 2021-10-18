@@ -15,7 +15,7 @@ public class LunePrintFunc extends LuneExecuteable
 		for(int i =0; i < size; i++)
 		{
 			obj = args[i];
-			sb.append(obj.toString());
+			sb.append(obj.strValue());
 			if(i < size -1)
 				sb.append(",");
 		}

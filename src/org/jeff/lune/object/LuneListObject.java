@@ -118,7 +118,7 @@ public class LuneListObject extends LuneObject
 		sb.append("[");
 		for(LuneObject obj : this.elements_)
 		{
-			sb.append(obj.toString());
+			sb.append(obj.strValue());
 			sb.append(",");
 		}
 		sb.append("]");

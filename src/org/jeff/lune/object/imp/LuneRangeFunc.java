@@ -15,17 +15,17 @@ public class LuneRangeFunc extends LuneExecuteable
 		long end = 0;
 		long step = 1;
 		if(args.length == 1)
-			end = args[0].toLong();
+			end = args[0].longValue();
 		if(args.length == 2)
 		{
-			start = args[0].toLong();
-			end = args[1].toLong();
+			start = args[0].longValue();
+			end = args[1].longValue();
 		}
 		if(args.length == 3)
 		{
-			start = args[0].toLong();
-			end = args[1].toLong();
-			step = args[2].toLong();
+			start = args[0].longValue();
+			end = args[1].longValue();
+			step = args[2].longValue();
 		}
 		LuneListObject range = new LuneListObject();
 		if(start < end)
