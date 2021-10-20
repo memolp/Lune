@@ -42,6 +42,7 @@ public class ForLoopStatement extends Statement
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
+		rt.PushBlockType(BlockStatementType.LOOP_BLOCK);
 		// 执行迭代逻辑 - 实际上只有列表和字典的迭代
 		LuneObject obj = iterObject.OnExecute(rt, null);
 		// 列表的迭代逻辑
@@ -108,6 +109,7 @@ public class ForLoopStatement extends Statement
 			throw new RuntimeException();
 		}
 		// 迭代结束后需要重置break和continue标记
+		rt.PopBlockType();
 		rt.IsBreakFlag = false;
 		rt.IsContinueFlag = false;
 		return null;

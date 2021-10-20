@@ -1,10 +1,17 @@
+# Lua 需要7秒
+# Python 需要25秒
+# Lune 需要27秒
+local_test = function(param)
+{
+    return param - 1;
+}
 
 cur = time.clock()
 i = 0
 total = 0
 while( i < 100000000)
 {
-    total = total + i
+    total = total + local_test(i)
     i = i + 1
 }
 end = time.clock()

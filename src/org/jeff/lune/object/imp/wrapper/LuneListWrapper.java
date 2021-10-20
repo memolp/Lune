@@ -1,17 +1,18 @@
-package org.jeff.lune.object.wrapper;
+package org.jeff.lune.object.imp.wrapper;
 
 import org.jeff.lune.LuneRuntime;
 import org.jeff.lune.object.LuneExecuteable;
 import org.jeff.lune.object.LuneListObject;
 import org.jeff.lune.object.LuneObject;
 import org.jeff.lune.object.LuneObjectType;
+import org.jeff.lune.object.LunePropertyObject;
 
 /**
  * LuneListObject类的外部方法包装类，使得LuneListObject对象可以直接调用其内部的方法
  * @author 覃贵锋
  *
  */
-public class LuneListWrapper extends LuneObject
+public class LuneListWrapper extends LunePropertyObject
 {
 	// 这里继承自LuneObject， 起始可以继承自LuneClass，就可以实现继承包装。但目前好像不需要这个特性。
 	public LuneListWrapper()
@@ -34,7 +35,7 @@ public class LuneListWrapper extends LuneObject
 		@Override
 		public LuneObject Execute(LuneRuntime rt, LuneObject... args)
 		{
-			LuneListObject list = (LuneListObject) args[0];
+			LuneListObject list = (LuneListObject)this.callObject;
 			return new LuneObject(list.Size());
 		}
 	}
@@ -48,8 +49,8 @@ public class LuneListWrapper extends LuneObject
 		@Override
 		public LuneObject Execute(LuneRuntime rt, LuneObject... args)
 		{
-			LuneListObject list = (LuneListObject) args[0];
-			list.Append(args[1]);
+			LuneListObject list = (LuneListObject) this.callObject;
+			list.Append(args[0]);
 			return null;
 		}
 	}
@@ -63,8 +64,8 @@ public class LuneListWrapper extends LuneObject
 		@Override
 		public LuneObject Execute(LuneRuntime rt, LuneObject... args)
 		{
-			LuneListObject list = (LuneListObject) args[0];
-			list.Remove(args[1]);
+			LuneListObject list = (LuneListObject) this.callObject;
+			list.Remove(args[0]);
 			return null;
 		}
 	}
@@ -78,8 +79,8 @@ public class LuneListWrapper extends LuneObject
 		@Override
 		public LuneObject Execute(LuneRuntime rt, LuneObject... args)
 		{
-			LuneListObject list = (LuneListObject) args[0];
-			LuneObject index = args[1];
+			LuneListObject list = (LuneListObject) this.callObject;
+			LuneObject index = args[0];
 			list.RemoveAt((int) index.longValue());
 			return null;
 		}
@@ -94,9 +95,9 @@ public class LuneListWrapper extends LuneObject
 		@Override
 		public LuneObject Execute(LuneRuntime rt, LuneObject... args)
 		{
-			LuneListObject list = (LuneListObject) args[0];
-			LuneObject index = args[1];
-			LuneObject obj = args[2];
+			LuneListObject list = (LuneListObject) this.callObject;
+			LuneObject index = args[0];
+			LuneObject obj = args[1];
 			list.Insert((int) index.longValue(), obj);
 			return null;
 		}
@@ -111,7 +112,7 @@ public class LuneListWrapper extends LuneObject
 		@Override
 		public LuneObject Execute(LuneRuntime rt, LuneObject... args)
 		{
-			LuneListObject list = (LuneListObject) args[0];
+			LuneListObject list = (LuneListObject)this.callObject;
 			list.Clear();
 			return null;
 		}

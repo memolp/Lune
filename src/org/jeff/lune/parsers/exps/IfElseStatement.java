@@ -29,22 +29,33 @@ public class IfElseStatement extends Statement
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
+		LuneObject res = null;
 		// if 语句不可能是 xx.if 这样的形式，因此不存在调用者
 		if(this.statementType  != StatementType.ELSE)
 		{
-			LuneObject res = this.condition.OnExecute(rt, null);
+			res = this.condition.OnExecute(rt, null);
 			if(res.toBool()) // 条件结果为true则运行if内部语句块
 			{
-				return this.body.OnExecute(rt, null);
+				// 语句块内部按照语句类型再进行执行
+				//rt.PushBlockType(BlockStatementType.IFELSE_BLOCK);
+				res = this.body.OnExecute(rt, null);
+				//rt.PopBlockType();
+				return res;
 			}else
 			{
 				if(this.Switch == null) return null;  // 说明没有分支
 				if(this.Switch.statementType == StatementType.ELIF)
 				{
-					return this.Switch.OnExecute(rt, null);
+					//rt.PushBlockType(BlockStatementType.IFELSE_BLOCK);
+					res = this.Switch.OnExecute(rt, null);
+					//rt.PopBlockType();
+					return res;
 				}else if(this.Switch.statementType == StatementType.ELSE)
 				{
-					return this.Switch.OnExecute(rt, null);
+					//rt.PushBlockType(BlockStatementType.IFELSE_BLOCK);
+					res = this.Switch.OnExecute(rt, null);
+					//rt.PopBlockType();
+					return res;
 				}else
 				{
 					throw new RuntimeException();
@@ -52,7 +63,10 @@ public class IfElseStatement extends Statement
 			}
 		}else // 否则ELSE条件不需要判断条件，执行运行
 		{
-			return this.body.OnExecute(rt, null);
+			//rt.PushBlockType(BlockStatementType.IFELSE_BLOCK);
+			res = this.body.OnExecute(rt, null);
+			//rt.PopBlockType();
+			return res;
 		}
 	}
 }

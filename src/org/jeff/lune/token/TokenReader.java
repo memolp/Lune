@@ -282,16 +282,6 @@ public class TokenReader
 			{
 				throw new RuntimeException(String.format(UNEXPECTEDSYMBOL, c, filename_, lineno_, column_));
 			}
-			if(b == '\n')
-			{
-				if(current_sb_.charAt(current_sb_.length()-1) == '\\')  //末尾加 `\`后可以换行
-				{
-					lineno_++;
-					column_ = 0;
-					continue;
-				}
-				throw new RuntimeException(String.format(UNEXPECTEDSYMBOL, b, filename_, lineno_, column_));
-			}
 			// 处理转义情况
 			if(b == '\\')
 			{
@@ -300,9 +290,26 @@ public class TokenReader
 				{
 					throw new RuntimeException();
 				}
-				AppendChar(next);
+				// \\ \' \" 都会只取最后一个，其他都是连取
+				if(next == '\\' || next == '\'' || next == '"')
+					AppendChar(next);
+				else
+				{
+					AppendChar(b);
+					AppendChar(next);
+				}
 				continue;
 			}
+			/*if(b == '\n')
+			{
+				if(current_sb_.charAt(current_sb_.length()-1) == '\\')  //末尾加 `\`后可以换行
+				{
+					lineno_++;
+					column_ = 0;
+					continue;
+				}
+				throw new RuntimeException(String.format(UNEXPECTEDSYMBOL, b, filename_, lineno_, column_));
+			}*/
 			if(b == c) // '' or ""
 			{
 				//AppendChar(b);

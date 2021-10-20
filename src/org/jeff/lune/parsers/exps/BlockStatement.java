@@ -15,15 +15,12 @@ public class BlockStatement extends Statement
 {
 	/** 语句列表 */
 	public List<Statement> body = new LinkedList<Statement>();
-	/** 语句块的类型定义- 文件，函数，各种条件内， 循环内 */
-	public BlockStatementType blockType;
 	/**
 	 * 语句块
 	 */
-	public BlockStatement(BlockStatementType bType, int line, int col)
+	public BlockStatement(int line, int col)
 	{
 		super(StatementType.BLOCK, line, col);
-		this.blockType = bType;
 	}
 	/**
 	 * 添加语句
@@ -38,8 +35,6 @@ public class BlockStatement extends Statement
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
 		// 这是整个代码执行的基础，基本上所有的代码都是由语句块开始执行
-		// 语句块内部按照语句类型再进行执行
-		rt.PushBlockType(this.blockType);
 		// 返回的结果
 		LuneObject res = null;
 		// 遍历全部的语句进行依次执行
@@ -105,8 +100,6 @@ public class BlockStatement extends Statement
 //			if(res != null)
 //				System.out.println(res.toString());
 		}
-		// 弹出类型
-		rt.PopBlockType();
 		// 返回结果
 		return res;
 	}

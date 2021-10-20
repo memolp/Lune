@@ -28,6 +28,8 @@ public class WhileStatement extends Statement
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
 		LuneObject res = null;
+		// 语句块内部按照语句类型再进行执行
+		rt.PushBlockType(BlockStatementType.LOOP_BLOCK);
 		// while 语句的执行
 		do
 		{
@@ -52,6 +54,8 @@ public class WhileStatement extends Statement
 		// 循环结束后要重置break和continue标记
 		rt.IsBreakFlag = false;
 		rt.IsContinueFlag = false;
+		// 弹出类型
+		rt.PopBlockType();
 		return res;
 	}
 }

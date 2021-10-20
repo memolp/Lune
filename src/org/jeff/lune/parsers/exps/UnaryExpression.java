@@ -34,12 +34,13 @@ public class UnaryExpression extends ExpressionStatement
 		LuneObject res = this.variable.OnExecute(rt, null);
 		switch(this.opType)
 		{
-			case OP_NOT:
-				res.SetValue(! res.toBool());
-				return res;
-			case OP_BIT_NOT:
-				res.SetValue(~res.longValue());
-				return res;
+			case OP_NOT: // true or false
+				if(res.toBool())
+					return LuneObject.falseLuneObject;
+				else
+					return LuneObject.trueLuneObject;
+			case OP_BIT_NOT: // 取反
+				return new LuneObject(~res.longValue());
 			default:
 				throw new RuntimeException();
 		}

@@ -9,7 +9,6 @@ import org.jeff.lune.object.LuneObject;
 import org.jeff.lune.parsers.exps.AssignmentExpression;
 import org.jeff.lune.parsers.exps.BinaryExpression;
 import org.jeff.lune.parsers.exps.BlockStatement;
-import org.jeff.lune.parsers.exps.BlockStatementType;
 import org.jeff.lune.parsers.exps.BreakStatement;
 import org.jeff.lune.parsers.exps.CallExpression;
 import org.jeff.lune.parsers.exps.ContinueStatement;
@@ -136,7 +135,7 @@ public class SyntaxParser
 	void function_parser(FunctionExpression function)
 	{
 		// 创建函数的变量池，并设置为当前变量池
-		this.PushPool(new StatementPool());
+		this.PushPool(new StatementPool(this.currentStPool_));
 		do
 		{
 			// 函数仅支持 xx.x.xx = function()
@@ -167,7 +166,7 @@ public class SyntaxParser
 				this.luneRT_.SyntaxError(UNEXPCETED_SYMBOL,  next_token.tokenStr, this.file_, next_token.tokenLine);
 				return;
 			}
-			BlockStatement body = new BlockStatement(BlockStatementType.FUNCTION_BLOCK, next_token.tokenLine, next_token.tokenCol);
+			BlockStatement body = new BlockStatement(next_token.tokenLine, next_token.tokenCol);
 			this.block_parser(body);
 			function.body = body;
 			next_token = this.GetToken();
@@ -290,7 +289,7 @@ public class SyntaxParser
 			this.luneRT_.SyntaxError(EXPCETED_SYMBOL, "{", this.file_,  for_state.startLine);
 			return;
 		}
-		BlockStatement body = new BlockStatement(BlockStatementType.LOOP_BLOCK, next_token.tokenLine, next_token.tokenCol);
+		BlockStatement body = new BlockStatement(next_token.tokenLine, next_token.tokenCol);
 		this.block_parser(body);
 		for_state.body = body;
 		next_token = this.GetToken();
@@ -326,7 +325,7 @@ public class SyntaxParser
 			this.luneRT_.SyntaxError(EXPCETED_SYMBOL, "{", this.file_,  wstate.startLine);
 			return;
 		}
-		BlockStatement body =  new BlockStatement(BlockStatementType.LOOP_BLOCK, next_token.tokenLine, next_token.tokenCol);
+		BlockStatement body =  new BlockStatement(next_token.tokenLine, next_token.tokenCol);
 		this.block_parser(body);
 		wstate.body = body;
 		next_token = this.GetToken();
@@ -366,7 +365,7 @@ public class SyntaxParser
 			this.luneRT_.SyntaxError(EXPCETED_SYMBOL, "{", this.file_,  if_state.startLine);
 			return;
 		}
-		BlockStatement body =  new BlockStatement(BlockStatementType.IFELSE_BLOCK, next_token.tokenLine, next_token.tokenCol);
+		BlockStatement body =  new BlockStatement(next_token.tokenLine, next_token.tokenCol);
 		this.block_parser(body);
 		if_state.body = body;
 		next_token = this.GetToken();

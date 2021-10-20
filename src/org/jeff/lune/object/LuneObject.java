@@ -1,7 +1,48 @@
 package org.jeff.lune.object;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class LuneObject extends Object
 {
+	/** 常量 true */
+	public static LuneObject trueLuneObject = new LuneObject(true);
+	/** 常量 false */
+	public static LuneObject falseLuneObject = new LuneObject(false);
+	/** 数字常量池 */
+	public static Map<Double, LuneObject> constDoubleObject = new  HashMap<Double, LuneObject>();
+	/** 一开始创建-2. 299的常量数字 */
+	static 
+	{
+		for(double i = -2; i < 300; i+=1)
+		{
+			constDoubleObject.put(i, new LuneObject(i));
+		}
+	}
+	/**
+	 * 创建数字变量-会缓存部分
+	 * @param v
+	 * @return
+	 */
+	public static LuneObject CreateDoubleObject(double v)
+	{
+		LuneObject res = constDoubleObject.get(v);
+		if(res == null)
+		{
+			res = new LuneObject(v);
+		}
+		return res;
+	}
+	/**
+	 * 创建boolean变量- 直接使用缓存
+	 * @param v
+	 * @return
+	 */
+	public static LuneObject CreateBooleanObject(boolean v)
+	{
+		if(v) return trueLuneObject;
+		return falseLuneObject;
+	}
 	/** 对象的类型 */
 	public LuneObjectType objType = LuneObjectType.DEFAULT;
 	/** 实际的对象 - LuneObject实际是对象value的外部包装 */
@@ -17,7 +58,9 @@ public class LuneObject extends Object
 	 */
 	public LuneObject(double v)
 	{
-		this.SetValue(v);
+		this.value_ = v;
+		//if(this.objType  != LuneObjectType.NUMBER)  TODO 类型检查
+		this.objType = LuneObjectType.NUMBER;
 	}
 	/**
 	 * 对象是布尔值
@@ -25,7 +68,8 @@ public class LuneObject extends Object
 	 */
 	public LuneObject(boolean v)
 	{
-		this.SetValue(v);
+		this.value_ = v;
+		this.objType = LuneObjectType.BOOL;
 	}
 	/**
 	 * 对象是字符串
@@ -33,45 +77,14 @@ public class LuneObject extends Object
 	 */
 	public LuneObject(String v)
 	{
-		this.SetValue(v);
+		this.value_ = v;
+		this.objType = LuneObjectType.STRING;
 	}
 	/**
 	 * 对象是Java的Object对象
 	 * @param v
 	 */
 	public LuneObject(Object v)
-	{
-		this.SetValue(v);
-	}
-	/**
-	 * 设置对象的值为数字
-	 * @param v
-	 */
-	public void SetValue(double v)
-	{
-		this.value_ = v;
-		//if(this.objType  != LuneObjectType.NUMBER)  TODO 类型检查
-		this.objType = LuneObjectType.NUMBER;
-	}
-	/**
-	 * 设置对象的值为字符串
-	 * @param v
-	 */
-	public void SetValue(String v)
-	{
-		this.value_ = v;
-		this.objType = LuneObjectType.STRING;
-	}
-	public void SetValue(boolean v)
-	{
-		this.value_ = v;
-		this.objType = LuneObjectType.BOOL;
-	}
-	/**
-	 * 设置对象的值是一个Java对象
-	 * @param v
-	 */
-	public void SetValue(Object v)
 	{
 		this.value_ = v;
 		this.objType = LuneObjectType.OBJECT;
@@ -114,13 +127,13 @@ public class LuneObject extends Object
 	@Override
 	public String toString() 
 	{
-		if(this.objType != LuneObjectType.STRING)
-			return String.valueOf(this.value_);
-		StringBuilder sb = new StringBuilder();
+		//if(this.objType != LuneObjectType.STRING)
+		return String.valueOf(this.value_);
+		/*StringBuilder sb = new StringBuilder();
 		sb.append("\"");
 		sb.append(this.value_);
 		sb.append("\"");
-		return sb.toString();
+		return sb.toString();*/
 	}
 	
 	public LuneObject GetAttribute(String name)

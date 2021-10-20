@@ -23,7 +23,7 @@ public class NumberStatement extends Statement
 	public NumberStatement(double val)
 	{
 		super(StatementType.NUMBER, -1, -1);
-		this.value = new LuneObject(val);
+		this.value = LuneObject.CreateDoubleObject(val);
 	}
 	
 	@Override

@@ -4,6 +4,7 @@ import org.jeff.lune.LuneRuntime;
 
 public abstract class LuneExecuteable extends LuneObject
 {
+	public LuneObject callObject = null;
 	public LuneExecuteable()
 	{
 		this.objType = LuneObjectType.EXECUTEABLE;

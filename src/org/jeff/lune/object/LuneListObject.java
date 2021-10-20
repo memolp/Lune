@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.jeff.lune.object.wrapper.LuneListWrapper;
+import org.jeff.lune.object.imp.wrapper.LuneListWrapper;
 
 public class LuneListObject extends LuneObject 
 {
