@@ -25,6 +25,11 @@ public class LuneMapObject extends LuneObject
 		return this.elements_.get(key);
 	}
 	
+	public LuneObject Get(String key)
+	{
+		return this.elements_.get(new LuneObject(key));
+	}
+	
 	public int GetSize()
 	{
 		return this.elements_.size();

@@ -103,9 +103,10 @@ public class LuneObject extends Object
 	 */
 	public double doubleValue()
 	{
-		if(this.objType != LuneObjectType.NUMBER)
-			throw new RuntimeException();
-		return (double) this.value_;
+		//if(this.objType != LuneObjectType.NUMBER)
+		//	throw new RuntimeException();
+		return new Double(this.value_.toString()).doubleValue();
+		//return (double) this.value_;
 	}
 	/**
 	 * 转换成整数
@@ -164,8 +165,8 @@ public class LuneObject extends Object
 		if(obj instanceof LuneObject)
 		{
 			LuneObject obj_ = (LuneObject)obj;
-			if(this.objType != obj_.objType) return false;
-			if(this.objType == LuneObjectType.NUMBER)
+			//if(this.objType != obj_.objType) return false;
+			if(this.objType == LuneObjectType.NUMBER || obj_.objType == LuneObjectType.NUMBER)
 				return this.doubleValue() == obj_.doubleValue();
 			return this.value_.equals(obj_.value_);
 		}
