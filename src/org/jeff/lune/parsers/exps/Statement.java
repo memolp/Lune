@@ -10,6 +10,7 @@ import org.jeff.lune.object.LuneObject;
  */
 public abstract class Statement
 {
+	public static String CurrentFile = "";
 	/** 语句的类型 */
 	public StatementType statementType;
 	/** 语句当前行 */

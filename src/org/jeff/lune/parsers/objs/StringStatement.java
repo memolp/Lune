@@ -6,7 +6,7 @@ import org.jeff.lune.parsers.exps.Statement;
 import org.jeff.lune.parsers.exps.StatementType;
 
 /**
- * 字符串常量表达式
+ * 字符串
  * TODO 需要处理 " ", "\"" , '"', "''" 单双引号组合转义的显示以及UTF8格式
  * @author 覃贵锋
  *
@@ -20,9 +20,9 @@ public class StringStatement extends Statement
 	 * @param line
 	 * @param col
 	 */
-	public StringStatement(String val)
+	public StringStatement(String val, int line, int col)
 	{
-		super(StatementType.STRING, -1, -1);
+		super(StatementType.STRING, line, col);
 		this.value = new LuneObject(val);
 	}
 	

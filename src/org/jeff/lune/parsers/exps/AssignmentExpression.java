@@ -25,20 +25,24 @@ public class AssignmentExpression extends ExpressionStatement
 	{
 		super(StatementType.ASSIGNMENT, line, col);
 	}
-
+	/**
+	 * 赋值语句
+	 * 变量赋值
+	 * 属性赋值
+	 * 列表赋值
+	 * 字典赋值
+	 */
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
+		rt.EnterStatement(this); // 进入代码块
 		// object 为null ==> a= xx
 		// object 不为null ==> a.x = xx
 		if(variable.statementType == StatementType.IDENTIFIER)
 		{
 			IdentifierStatement idt = (IdentifierStatement)variable;
+			// 赋值语句出来的是需要更新左边的变量的。
 			LuneObject val = this.value.OnExecute(rt, null);
-			if(val == null)
-			{
-				throw new RuntimeException();
-			}
 			if(object == null)
 			{
 				//idt.cache_value = val;  // 缓存值
@@ -47,7 +51,6 @@ public class AssignmentExpression extends ExpressionStatement
 			{
 				object.SetAttribute(idt.name, val);
 			}
-			return val;
 		}
 		// 对列表和字典的赋值
 		else if(variable.statementType == StatementType.INDEX)
@@ -58,9 +61,15 @@ public class AssignmentExpression extends ExpressionStatement
 			if(_obj.objType == LuneObjectType.LIST)
 			{
 				LuneListObject list = (LuneListObject)_obj;
-				// 获取下标
-				int index = (int) listexp.index.OnExecute(rt, null).longValue();
-				list.Set(index, val);
+				try
+				{
+					// 获取下标
+					int index = (int) listexp.index.OnExecute(rt, null).longValue();
+					list.Set(index, val);
+				} catch (Exception e)
+				{
+					rt.RuntimeError(this, "%s", e.getMessage());
+				}
 			}
 			else if(_obj.objType == LuneObjectType.MAP)
 			{
@@ -69,11 +78,12 @@ public class AssignmentExpression extends ExpressionStatement
 				LuneObject index = listexp.index.OnExecute(rt, null);
 				map.Set(index, val);
 			}
-			return _obj;
 		}else
 		{
-			throw new RuntimeException();
+			rt.RuntimeError(this, "%s 语句语法错误", this.toString());
 		}
+		rt.LeaveStatement(this); // 离开
+		return LuneObject.noneLuneObject;
 	}
 	
 	@Override

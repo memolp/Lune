@@ -2,6 +2,7 @@ package org.jeff.lune.parsers.exps;
 
 import org.jeff.lune.LuneRuntime;
 import org.jeff.lune.object.LuneObject;
+import org.jeff.lune.object.LuneObjectType;
 import org.jeff.lune.token.TokenType;
 
 /**
@@ -81,69 +82,101 @@ public class BinaryExpression extends ExpressionStatement
 				this.opValue = 0;
 		}
 	}
-
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
+		rt.EnterStatement(this); // 进入表达式。
 		// 获取左右操作数的对象
 		LuneObject obj1 = this.left.OnExecute(rt, null);
 		LuneObject obj2 = this.right.OnExecute(rt, null);
-		
-		// TODO 这里没有做类型检查，需要加上才好
-		// TODO 这里每次都会创建一个对象 例如 1+2+3 会创建两个对象，而不是整个表达式一个对象。待完善。
-		switch(this.opType)
+		LuneObject result = LuneObject.noneLuneObject;
+		try
 		{
-			// 四则混合运算
-			case  OP_PLUS:
-				return LuneObject.CreateDoubleObject(obj1.doubleValue() + obj2.doubleValue());
-		 	case OP_MINUS:
-		 		return LuneObject.CreateDoubleObject(obj1.doubleValue() -  obj2.doubleValue());
-		 	case OP_MULTI:
-		 		return LuneObject.CreateDoubleObject(obj1.doubleValue() * obj2.doubleValue());
-		 	case OP_DIV:
-		 		return LuneObject.CreateDoubleObject(obj1.doubleValue() / obj2.doubleValue());
-		 	case OP_MOD:
-		 		return LuneObject.CreateDoubleObject(obj1.doubleValue() % obj2.doubleValue());
-		 	// 位运算 - 只能操作整形数
-		 	case OP_BIT_AND:
-		 		return new LuneObject(obj1.longValue() & obj2.longValue());
-		 	case OP_BIT_OR:
-		 		return new LuneObject(obj1.longValue() | obj2.longValue());
-		 	case OP_BIT_LEFT:
-		 		return new LuneObject(obj1.longValue() << obj2.longValue());
-		 	case OP_BIT_RIGHT:
-		 		return new LuneObject(obj1.longValue() >> obj2.longValue()); 
-		 	case OP_BIT_XOR:
-		 		return new LuneObject(obj1.longValue() ^ obj2.longValue()); 
-		 	// 比较运算符
-		 	case OP_GT:
-		 		return LuneObject.CreateBooleanObject(obj1.doubleValue() > obj2.doubleValue());
-		 	case OP_GE:
-		 		return LuneObject.CreateBooleanObject(obj1.doubleValue() >= obj2.doubleValue());
-		 	case OP_LT:
-		 		return LuneObject.CreateBooleanObject(obj1.doubleValue() < obj2.doubleValue());
-		 	case OP_LE:
-		 		return LuneObject.CreateBooleanObject(obj1.doubleValue() <= obj2.doubleValue());
-		 	case OP_EQ:
-		 		return LuneObject.CreateBooleanObject(obj1.equals(obj2));
-		 	case OP_NE:
-		 		return LuneObject.CreateBooleanObject(!obj1.equals(obj2));
-		    // 连接运算符
-		 	case OP_AND:
-		 		if(obj1.toBool() && obj2.toBool())
-		 			return LuneObject.trueLuneObject;
-		 		else
-		 			return LuneObject.falseLuneObject;
-		 	case OP_OR:
-		 		if(obj1.toBool())
-		 			return LuneObject.trueLuneObject;
-		 		else if(obj2.toBool())
-		 			return LuneObject.trueLuneObject;
-		 		else
-		 			return LuneObject.falseLuneObject;
-		 	default:
-		 		throw new RuntimeException();
+			// TODO 这里没有做类型检查，需要加上才好
+			// TODO 这里每次都会创建一个对象 例如 1+2+3 会创建两个对象，而不是整个表达式一个对象。待完善。
+			switch(this.opType)
+			{
+				// 四则混合运算
+				case  OP_PLUS:
+					// 支持字符串的加法
+					if(obj1.objType == LuneObjectType.STRING || obj2.objType == LuneObjectType.STRING)
+					{
+						result = new LuneObject(obj1.strValue() + obj2.strValue());
+						break;
+					}
+					result =  LuneObject.CreateDoubleObject(obj1.doubleValue() + obj2.doubleValue());
+					break;
+			 	case OP_MINUS:
+			 		result = LuneObject.CreateDoubleObject(obj1.doubleValue() -  obj2.doubleValue());
+					break;
+			 	case OP_MULTI:
+			 		result =  LuneObject.CreateDoubleObject(obj1.doubleValue() * obj2.doubleValue());
+					break;
+			 	case OP_DIV:
+			 		result = LuneObject.CreateDoubleObject(obj1.doubleValue() / obj2.doubleValue());
+					break;
+			 	case OP_MOD:
+			 		result = LuneObject.CreateDoubleObject(obj1.doubleValue() % obj2.doubleValue());
+			 		break;
+			 	// 位运算 - 只能操作整形数
+			 	case OP_BIT_AND:
+			 		result =  new LuneObject(obj1.longValue() & obj2.longValue());
+			 		break;
+			 	case OP_BIT_OR:
+			 		result =  new LuneObject(obj1.longValue() | obj2.longValue());
+			 		break;
+			 	case OP_BIT_LEFT:
+			 		result = new LuneObject(obj1.longValue() << obj2.longValue());
+			 		break;
+			 	case OP_BIT_RIGHT:
+			 		result = new LuneObject(obj1.longValue() >> obj2.longValue());
+			 		break;
+			 	case OP_BIT_XOR:
+			 		result = new LuneObject(obj1.longValue() ^ obj2.longValue());
+			 		break;
+			 	// 比较运算符
+			 	case OP_GT:
+			 		result = LuneObject.CreateBooleanObject(obj1.doubleValue() > obj2.doubleValue());
+			 		break;
+			 	case OP_GE:
+			 		result = LuneObject.CreateBooleanObject(obj1.doubleValue() >= obj2.doubleValue());
+			 		break;
+			 	case OP_LT:
+			 		result = LuneObject.CreateBooleanObject(obj1.doubleValue() < obj2.doubleValue());
+			 		break;
+			 	case OP_LE:
+			 		result = LuneObject.CreateBooleanObject(obj1.doubleValue() <= obj2.doubleValue());
+			 		break;
+			 	case OP_EQ: // ==和 != 判断是支持字符串，数字，对象的，因此比较复杂点
+			 		result = LuneObject.CreateBooleanObject(obj1.equals(obj2));
+			 		break;
+			 	case OP_NE:
+			 		result =  LuneObject.CreateBooleanObject(!obj1.equals(obj2));
+			 		break;
+			    // 连接运算符
+			 	case OP_AND:
+			 		if(obj1.toBool() && obj2.toBool())
+			 			result = LuneObject.trueLuneObject;
+			 		else
+			 			result = LuneObject.falseLuneObject;
+			 		break;
+			 	case OP_OR:
+			 		if(obj1.toBool())
+			 			result = LuneObject.trueLuneObject;
+			 		else if(obj2.toBool())
+			 			result = LuneObject.trueLuneObject;
+			 		else
+			 			result = LuneObject.falseLuneObject;
+			 		break;
+			 	default:
+			 		rt.RuntimeError(this, "%s 不支持的运算方式", this.toString()); // 这里面需要处理一下异常后的堆栈情况。
+			 		break;
+			}
+		}catch (Exception e) {
+			rt.RuntimeError(this, "%s", e.getMessage());
 		}
+		rt.LeaveStatement(this); 
+		return result;
 	}
 	
 	@Override

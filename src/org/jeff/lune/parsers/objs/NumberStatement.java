@@ -6,7 +6,7 @@ import org.jeff.lune.parsers.exps.Statement;
 import org.jeff.lune.parsers.exps.StatementType;
 
 /**
- * 数字常量
+ * 数字 目前仅支持浮点数double类型，如果需要整形的再搞一下。
  * @author 覃贵锋
  *
  */
@@ -20,10 +20,13 @@ public class NumberStatement extends Statement
 	 * @param line
 	 * @param col
 	 */
-	public NumberStatement(double val)
+	public NumberStatement(String val, boolean isFloat, int line, int col)
 	{
-		super(StatementType.NUMBER, -1, -1);
-		this.value = LuneObject.CreateDoubleObject(val);
+		super(StatementType.NUMBER, line, col);
+		if(isFloat)
+			this.value = LuneObject.CreateDoubleObject(Double.parseDouble(val));
+		else
+			this.value = LuneObject.CreateLongObject(Long.parseLong(val));
 	}
 	
 	@Override

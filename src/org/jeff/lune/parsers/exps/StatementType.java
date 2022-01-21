@@ -13,6 +13,8 @@ public enum StatementType
 	NUMBER,	
 	/** 布尔表达式 true和false */
 	BOOLEAN,
+	/** None */
+	NONE,
 	/** 字符串表达式 */
 	STRING,
 	/**  赋值语句 */

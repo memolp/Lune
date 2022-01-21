@@ -34,7 +34,7 @@ public class LunePropertyObject extends LuneObject
 	/** 创建默认的LuneObject对象，value_为空值 */
 	public LunePropertyObject()
 	{
-		this.objType = LuneObjectType.DEFAULT;
+		this.objType = LuneObjectType.None;
 	}
 	/**
 	 * 对象内部进行拷贝
@@ -56,7 +56,7 @@ public class LunePropertyObject extends LuneObject
 	}
 	
 	@Override
-	public boolean toBool()
+	public boolean toBool() throws Exception
 	{
 		if(this.objType == LuneObjectType.OBJECT)
 			return !this.__attributes.isEmpty();

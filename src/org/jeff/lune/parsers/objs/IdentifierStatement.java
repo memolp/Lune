@@ -25,13 +25,17 @@ public class IdentifierStatement extends Statement
 	 * @param line
 	 * @param col
 	 */
-	public IdentifierStatement(String val)
+	public IdentifierStatement(String val, int line, int col)
 	{
-		super(StatementType.IDENTIFIER, -1, -1);
+		super(StatementType.IDENTIFIER, line, col);
 		this.name = val;
 	}
-	
+	/** 缓存变量的值 */  //TODO 需要待优化，需要考虑更新以及如何指定更新了。
 	public LuneObject cache_value = null;
+	/**
+	 * 变量参数执行，相当于获取变量的值。
+	 * 解释：变量本身只是一个字符串，它的值存储在命名空间里面或者其父对象的属性上面。
+	 */
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{

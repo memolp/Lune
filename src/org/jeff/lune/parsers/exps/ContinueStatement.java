@@ -24,7 +24,13 @@ public class ContinueStatement extends Statement
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
 		// continue 也没有执行行为
-		return null;
+		return LuneObject.noneLuneObject;
+	}
+	
+	@Override
+	public String toString()
+	{
+		return "continue";
 	}
 
 }

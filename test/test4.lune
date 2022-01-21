@@ -8,9 +8,19 @@ print(dict2["a"])
 dict2["b"] = 50
 dict2["e"] = 1
 print(dict2["b"])
-print(table.len(dict2))
+#print(table.len(dict2))
 
 for(k,v in dict2)
 {
     print(k,v)
+}
+
+for(i in range(10 + 1))
+{
+  print(i)
+}
+
+if(c)
+{
+  print("xxx")
 }

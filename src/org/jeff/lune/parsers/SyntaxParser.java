@@ -1,7 +1,6 @@
 package org.jeff.lune.parsers;
 
 import java.io.Reader;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.jeff.lune.LuneRuntime;
@@ -27,7 +26,9 @@ import org.jeff.lune.parsers.objs.BooleanStatement;
 import org.jeff.lune.parsers.objs.IdentifierStatement;
 import org.jeff.lune.parsers.objs.ListStatement;
 import org.jeff.lune.parsers.objs.MapSatement;
+import org.jeff.lune.parsers.objs.NoneStatement;
 import org.jeff.lune.parsers.objs.NumberStatement;
+import org.jeff.lune.parsers.objs.StringStatement;
 import org.jeff.lune.token.Token;
 import org.jeff.lune.token.TokenReader;
 import org.jeff.lune.token.TokenType;
@@ -51,7 +52,7 @@ import org.jeff.lune.token.TokenType;
  *  7. Continue语句 ContinueStatement
  *  8. Return语句 ReturnStatement
  * @author 覃贵锋
- *
+ *  TODO 已移除缓存变量、数字、字符串等语句的部分。
  */
 public class SyntaxParser
 {
@@ -88,32 +89,14 @@ public class SyntaxParser
 	 */
 	public void parser()
 	{
-		this.currentStPool_ = new StatementPool();
 		// 创建程序语句块
 		program_ = new ProgramStatement(this.file_, -1, -1);
 		this.block_parser(program_);
 		// 解析完成后就清理数据
 		this.curr_token = null;
 		this.ahead_token_= null;
-		this.currentStPool_ = null;
-		this.mStatementPool.clear();
 		this.tokenReader_ = null;
 	}
-	
-	StatementPool currentStPool_ = null;
-	List<StatementPool> mStatementPool = new LinkedList<StatementPool>();
-	private void PushPool(StatementPool st) 
-	{
-		mStatementPool.add(currentStPool_);
-		currentStPool_ = st;
-	}
-
-	private void PopPool() 
-	{
-		if(!mStatementPool.isEmpty())
-			currentStPool_ = mStatementPool.remove(mStatementPool.size() - 1);
-	}
-
 	/**
 	 * 语句块解析
 	 * @param block
@@ -127,15 +110,12 @@ public class SyntaxParser
 			block.AddStatement(state);
 		}while(true);
 	}
-	
 	/**
 	 * 函数声明解析（解析参数和函数体内部）
 	 * @param function
 	 */
 	void function_parser(FunctionExpression function)
 	{
-		// 创建函数的变量池，并设置为当前变量池
-		this.PushPool(new StatementPool(this.currentStPool_));
 		do
 		{
 			// 函数仅支持 xx.x.xx = function()
@@ -181,8 +161,6 @@ public class SyntaxParser
 				return;
 			}
 		}while(false);
-		// 弹出当前的变量池
-		this.PopPool();
 	}
 	/**
 	 * 函数的参数，只能是简单的变量
@@ -206,7 +184,8 @@ public class SyntaxParser
 			// 函数的参数只能是变量标识符
 			if(token.tokenType == TokenType.IDENTIFIER)
 			{
-				IdentifierStatement idt = this.currentStPool_.CreateIdentifierStatement(token.tokenStr);
+				// TODO 这里每次都会创建新的标识符，移除缓存是方便做堆栈。具体后面再看。
+				IdentifierStatement idt =  new IdentifierStatement(token.tokenStr, token.tokenLine, token.tokenCol);
 				params.add(idt);
 			}
 			token = this.GetToken();
@@ -254,7 +233,7 @@ public class SyntaxParser
 				continue;
 			if(next_token.tokenType ==TokenType.IDENTIFIER)
 			{
-				IdentifierStatement idt = this.currentStPool_.CreateIdentifierStatement(next_token.tokenStr);
+				IdentifierStatement idt = new IdentifierStatement(next_token.tokenStr, next_token.tokenLine, next_token.tokenCol);
 				for_state.params.add(idt);
 			}
 			else if(next_token.tokenType == TokenType.KW_IN)
@@ -375,6 +354,10 @@ public class SyntaxParser
 			return;
 		}
 		next_token = this.GetToken();
+		if(next_token == null) // 后面已经没有其他代码了。
+		{
+			return;
+		}
 		// 如果有elif分支
 		if(next_token.tokenType ==TokenType.KW_ELIF)
 		{
@@ -425,7 +408,7 @@ public class SyntaxParser
 				// 变量
 				if(token.tokenType == TokenType.IDENTIFIER)
 				{
-					left = this.currentStPool_.CreateIdentifierStatement(token.tokenStr);
+					left = new IdentifierStatement(token.tokenStr, token.tokenLine, token.tokenCol);
 					Token next_token = this.GetToken();
 					// 需要针对属性访问做特殊处理
 					if(next_token.tokenType == TokenType.OP_DOT)
@@ -448,13 +431,12 @@ public class SyntaxParser
 				}// 字符串
 				else if(token.tokenType == TokenType.STRING)
 				{
-					left = this.currentStPool_.CreateStringStatement(token.tokenStr);
+					left = new StringStatement(token.tokenStr, token.tokenLine, token.tokenCol);
 					break;
 				}// 数字
 				else if(token.tokenType == TokenType.NUMBER)
 				{
-					double v = Double.parseDouble(token.tokenStr);
-					left = this.currentStPool_.CreateNumberStatement(v);
+					left = new NumberStatement(token.tokenStr, token.isDoubleValue, token.tokenLine, token.tokenCol);
 					break;
 				}// 列表
 				else if(token.tokenType == TokenType.LBRACK)  //[
@@ -575,8 +557,7 @@ public class SyntaxParser
 					{
 						this.luneRT_.SyntaxError(UNEXPCETED_SYMBOL, token.tokenStr,  this.file_, token.tokenLine);
 					}
-					double v = Double.parseDouble(token.tokenStr);
-					NumberStatement num = this.currentStPool_.CreateNumberStatement(-v);
+					NumberStatement num =  new NumberStatement(token.tokenStr, token.isDoubleValue, token.tokenLine, token.tokenCol);
 					left = num;
 					break;
 				}// 函数
@@ -619,8 +600,13 @@ public class SyntaxParser
 					return left;
 				}else if(token.tokenType == TokenType.KW_TRUE || token.tokenType == TokenType.KW_FALSE)
 				{
-					BooleanStatement b = this.currentStPool_.CreateBoolStatement(Boolean.parseBoolean(token.tokenStr));
+					BooleanStatement b = new BooleanStatement(token.tokenStr, token.tokenLine, token.tokenCol);
 					left = b;
+					break;
+				}else if(token.tokenType == TokenType.KW_NONE)
+				{
+					NoneStatement none = new NoneStatement(token.tokenLine,  token.tokenCol);
+					left = none;
 					break;
 				}
 				else

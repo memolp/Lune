@@ -6,6 +6,7 @@ import java.util.Map;
 import org.jeff.lune.LuneRuntime;
 import org.jeff.lune.object.LuneMapObject;
 import org.jeff.lune.object.LuneObject;
+import org.jeff.lune.object.LuneObjectType;
 import org.jeff.lune.parsers.exps.Statement;
 import org.jeff.lune.parsers.exps.StatementType;
 
@@ -42,15 +43,21 @@ public class MapSatement extends Statement
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
+		rt.EnterStatement(this);
 		// 获取字典语句表达式的结果，创建字典对象
 		LuneMapObject map = new LuneMapObject();
 		for(Statement key: this.elements.keySet())
 		{
 			// key 和value 都需要通过执行生成对象
 			LuneObject keyObj = key.OnExecute(rt, null);
+			if(keyObj.objType == LuneObjectType.None)
+			{
+				rt.RuntimeError(this, "None 无法作为字典的Key");
+			}
 			LuneObject valueObj = this.elements.get(key).OnExecute(rt, null);
 			map.Set(keyObj, valueObj);
 		}
+		rt.LeaveStatement(this);
 		return map;
 	}
 	

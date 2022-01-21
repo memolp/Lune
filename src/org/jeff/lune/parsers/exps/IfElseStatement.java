@@ -29,44 +29,42 @@ public class IfElseStatement extends Statement
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
-		LuneObject res = null;
+		rt.EnterStatement(this);
 		// if 语句不可能是 xx.if 这样的形式，因此不存在调用者
 		if(this.statementType  != StatementType.ELSE)
 		{
-			res = this.condition.OnExecute(rt, null);
-			if(res.toBool()) // 条件结果为true则运行if内部语句块
+			LuneObject res = this.condition.OnExecute(rt, null);
+			// 条件结果为true则运行if内部语句块  有可能res是空值。
+			try
 			{
-				// 语句块内部按照语句类型再进行执行
-				//rt.PushBlockType(BlockStatementType.IFELSE_BLOCK);
-				res = this.body.OnExecute(rt, null);
-				//rt.PopBlockType();
-				return res;
-			}else
-			{
-				if(this.Switch == null) return null;  // 说明没有分支
-				if(this.Switch.statementType == StatementType.ELIF)
+				if(res.toBool()) 
 				{
-					//rt.PushBlockType(BlockStatementType.IFELSE_BLOCK);
-					res = this.Switch.OnExecute(rt, null);
-					//rt.PopBlockType();
-					return res;
-				}else if(this.Switch.statementType == StatementType.ELSE)
-				{
-					//rt.PushBlockType(BlockStatementType.IFELSE_BLOCK);
-					res = this.Switch.OnExecute(rt, null);
-					//rt.PopBlockType();
-					return res;
+					// 语句块内部按照语句类型再进行执行
+					this.body.OnExecute(rt, null);
 				}else
 				{
-					throw new RuntimeException();
+					if(this.Switch != null)  // 如果有分支则走分支判断
+					{
+						if(this.Switch.statementType == StatementType.ELIF)
+						{
+							 this.Switch.OnExecute(rt, null);
+						}else if(this.Switch.statementType == StatementType.ELSE)
+						{
+							this.Switch.OnExecute(rt, null);
+						}else
+						{
+							rt.RuntimeError(this, "语句: %s 类型:%s 并不是分支语句", this.Switch, this.Switch.statementType);
+						}
+					}
 				}
+			}catch (Exception e) {
+				rt.RuntimeError(this, "%s", e.getMessage());
 			}
 		}else // 否则ELSE条件不需要判断条件，执行运行
 		{
-			//rt.PushBlockType(BlockStatementType.IFELSE_BLOCK);
-			res = this.body.OnExecute(rt, null);
-			//rt.PopBlockType();
-			return res;
+			this.body.OnExecute(rt, null);
 		}
+		rt.LeaveStatement(this);
+		return LuneObject.noneLuneObject;
 	}
 }

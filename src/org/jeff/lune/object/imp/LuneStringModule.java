@@ -9,6 +9,11 @@ import org.jeff.lune.object.LuneObject;
 import org.jeff.lune.object.LuneObjectType;
 import org.jeff.lune.object.LunePropertyObject;
 
+/**
+ * 字符串相关操作的模块
+ * @author 覃贵锋
+ *
+ */
 public class LuneStringModule extends LunePropertyObject
 {
 	public LuneStringModule()
@@ -26,10 +31,12 @@ public class LuneStringModule extends LunePropertyObject
 	class _format_func extends LuneExecuteable
 	{
 		@Override
-		public LuneObject Execute(LuneRuntime rt, LuneObject... args)
+		public LuneObject Execute(LuneRuntime rt, LuneObject... args) throws Exception
 		{
 			if(args.length < 2)
-				throw new RuntimeException();
+			{
+				throw new Exception("string.format(fmt, ...) 至少需要2个参数");
+			}
 			String fmt = args[0].strValue();
 			Object[] params = new String[args.length - 1];
 			for(int i=1; i < args.length; i++)
@@ -48,10 +55,12 @@ public class LuneStringModule extends LunePropertyObject
 	class _concat_func extends LuneExecuteable
 	{
 		@Override
-		public LuneObject Execute(LuneRuntime rt, LuneObject... args)
+		public LuneObject Execute(LuneRuntime rt, LuneObject... args) throws Exception
 		{
 			if(args.length != 2)
-				throw new RuntimeException();
+			{
+				throw new Exception("string.concat([list, dict], tag) 需要两个参数");
+			}
 			LuneObject list_obj = args[0];
 			LuneObject tag = args[1];
 			StringBuilder sb = new StringBuilder();
@@ -82,8 +91,10 @@ public class LuneStringModule extends LunePropertyObject
 				}
 				return new LuneObject(sb.toString());*/
 				throw new RuntimeException();
+			}else
+			{
+				throw new Exception(String.format("string.concat([list, dict], tag) 需要列表或者字典作为第一个参数，而不是:%s类型", list_obj.objType));
 			}
-			return null;
 		}
 		
 	}

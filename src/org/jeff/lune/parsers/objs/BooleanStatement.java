@@ -20,10 +20,11 @@ public class BooleanStatement extends Statement
 	 * @param line
 	 * @param col
 	 */
-	public BooleanStatement(boolean v)
+	public BooleanStatement(String str, int line, int col)
 	{
-		super(StatementType.BOOLEAN, -1, -1);
-		value = new LuneObject(v);
+		super(StatementType.BOOLEAN, line, col);
+		// 内部的值采用常量赋值。
+		value = LuneObject.CreateBooleanObject(Boolean.parseBoolean(str));
 	}
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object)

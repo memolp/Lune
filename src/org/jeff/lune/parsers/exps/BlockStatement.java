@@ -30,13 +30,17 @@ public class BlockStatement extends Statement
 	{
 		body.add(state);
 	}
-	
+	/**
+	 * 语句块执行，包含文件、函数、各种控制语句
+	 */
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
+		// 进入执行语句
+		rt.EnterStatement(this);
 		// 这是整个代码执行的基础，基本上所有的代码都是由语句块开始执行
 		// 返回的结果
-		LuneObject res = null;
+		LuneObject res = LuneObject.noneLuneObject;
 		// 遍历全部的语句进行依次执行
 		for(Statement state: this.body)
 		{
@@ -74,8 +78,11 @@ public class BlockStatement extends Statement
 			// 函数的return
 			else if(state.statementType == StatementType.RETURN)
 			{
+				// 检查return是不是在函数内部。
 				if(!rt.isInBlock(BlockStatementType.FUNCTION_BLOCK))
-					throw new RuntimeException();
+				{
+					rt.RuntimeError(this, "%s 只能放在函数内部", state.toString());
+				}
 				res = state.OnExecute(rt, object);
 				// 设置RT进入跳出运行 必须跳出直到遇到函数语句块则结束
 				rt.IsReturnFlag = true;
@@ -84,22 +91,28 @@ public class BlockStatement extends Statement
 			// 循环的break
 			else if(state.statementType == StatementType.BREAK)
 			{
+				// break 要在循环里面
 				if(!rt.isInBlock(BlockStatementType.LOOP_BLOCK))
-					throw new RuntimeException();
+				{
+					rt.RuntimeError(this, "%s 只能放在循环体内部", state.toString());
+				}
 				rt.IsBreakFlag = true;
 				break;
 			}
 			// 循环的continue
 			else if(state.statementType == StatementType.CONTINUE)
 			{
+				// continue也必须在循环里面
 				if(!rt.isInBlock(BlockStatementType.LOOP_BLOCK))
-					throw new RuntimeException();
+				{
+					rt.RuntimeError(this, "%s 只能放在循环体内部", state.toString());
+				}
 				rt.IsContinueFlag = true;
 				break;
 			}
-//			if(res != null)
-//				System.out.println(res.toString());
 		}
+		// 离开执行语句
+		rt.LeaveStatement(this);
 		// 返回结果
 		return res;
 	}

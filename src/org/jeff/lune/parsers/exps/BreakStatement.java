@@ -24,7 +24,13 @@ public class BreakStatement extends Statement
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
 		// 没有执行行为，外部遇到就走跳出
-		return null;
+		return LuneObject.noneLuneObject;
+	}
+	
+	@Override
+	public String toString()
+	{
+		return "break";
 	}
 
 }

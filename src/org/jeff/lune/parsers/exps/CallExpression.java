@@ -40,12 +40,14 @@ public class CallExpression extends ExpressionStatement
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
+		rt.EnterStatement(this);
+		LuneObject result = LuneObject.noneLuneObject;
 		// 函数调用分为 三类 Java导出的可执行方法， 类执行，其他函数执行
 		// 获取函数名对象
 		LuneObject func = rt.GetLuneObject(variable, object);
-		if(func == null) 
+		if(func.objType == LuneObjectType.None) 
 		{
-			throw new RuntimeException();
+			rt.RuntimeError(this, "%s 符号未找到定义.",  variable);
 		}
 		// Java 执行方法
 		if(func.objType == LuneObjectType.EXECUTEABLE)
@@ -58,16 +60,23 @@ public class CallExpression extends ExpressionStatement
 			for(Statement param_state: this.params)
 			{
 				temp_args = param_state.OnExecute(rt, null);
-				if(temp_args == null)
+				if(temp_args.objType == LuneObjectType.None)
 				{
-					throw new RuntimeException();
+					rt.RuntimeError(this, "%s 符号参数未找到对应的定义",  param_state);
 				}
 				args[index ++] = temp_args;
 			}
 			LuneExecuteable impfunc = (LuneExecuteable)func;
 			impfunc.callObject = object;
-			return impfunc.Execute(rt, args);
-		}else
+			try
+			{
+				result =  impfunc.Execute(rt, args);
+			} catch (Exception e)
+			{
+				rt.RuntimeError(this, "%s", e.getMessage());
+			}
+		}
+		else
 		{
 			// 先处理传参部分，将参数全部生成对象
 			List<LuneObject> args = new LinkedList<LuneObject>();
@@ -76,9 +85,9 @@ public class CallExpression extends ExpressionStatement
 			for(Statement param_state: this.params)
 			{
 				temp_args = param_state.OnExecute(rt, null);
-				if(temp_args == null)
+				if(temp_args.objType == LuneObjectType.None)
 				{
-					throw new RuntimeException();
+					rt.RuntimeError(this, "%s 符号参数未找到对应的定义",  param_state);
 				}
 				args.add(temp_args);
 			}
@@ -88,7 +97,7 @@ public class CallExpression extends ExpressionStatement
 				LuneClassInstance obj = new LuneClassInstance((LuneClassObject) func);
 				// 这里在创建对象后，立即执行其构造函数
 				LuneObject ctor_ = obj.GetAttribute("ctor");
-				if(ctor_ != null && ctor_.objType == LuneObjectType.FUNCTION)
+				if(ctor_.objType == LuneObjectType.FUNCTION)
 				{
 					FunctionExpression func_ = (FunctionExpression) ctor_.GetValue();
 					// 创建临时命名空间
@@ -110,11 +119,10 @@ public class CallExpression extends ExpressionStatement
 					}
 					// 将命名空间放入栈顶
 					rt.PushNamespace(temp_func_namespace);
-					func_.OnFunctionCall(rt, null);
+					result = func_.OnFunctionCall(rt, null);
 					// 函数执行完成后移除命名空间
 					rt.PopNamespace();
 				}
-				return obj;
 			}
 			// 函数调用
 			else if(func.objType == LuneObjectType.FUNCTION)
@@ -126,7 +134,7 @@ public class CallExpression extends ExpressionStatement
 				{
 					temp_func_namespace.UpdateNamespace(func_obj.namespace);
 				}
-				temp_func_namespace.AddSymbol("arguments", args);
+				temp_func_namespace.AddSymbol("arguments",  new LuneListObject(args));
 				int index =0;
 				IdentifierStatement paramIdt = null;
 				for(Statement param_state: func_.params)
@@ -147,7 +155,9 @@ public class CallExpression extends ExpressionStatement
 						if(ist != null)
 						{
 							if(ist.objType != LuneObjectType.INSTANCE)
-								throw new RuntimeException();
+							{
+								rt.RuntimeError(this, "this 必须是实例对象，当前获取的是:%s 类型",  ist.objType);
+							}
 							// 这里还要检查类继承对不对
 							temp_func_namespace.AddSymbol("this", ist);
 						}
@@ -155,15 +165,16 @@ public class CallExpression extends ExpressionStatement
 				}
 				// 将命名空间放入栈顶
 				rt.PushNamespace(temp_func_namespace);
-				LuneObject res = func_.OnFunctionCall(rt, null);
+				result = func_.OnFunctionCall(rt, null);
 				// 函数执行完成后移除命名空间
 				rt.PopNamespace();
-				return res;
 			}else
 			{
-				throw new RuntimeException();
+				rt.RuntimeError(this, "%s 不是可以调用的对象", func);
 			}
 		}
+		rt.LeaveStatement(this);
+		return result;
 	}
 	
 	@Override

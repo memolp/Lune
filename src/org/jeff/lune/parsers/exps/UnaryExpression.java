@@ -30,19 +30,30 @@ public class UnaryExpression extends ExpressionStatement
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
+		rt.EnterStatement(this);
 		// 先计算右侧值
 		LuneObject res = this.variable.OnExecute(rt, null);
-		switch(this.opType)
+		try
 		{
-			case OP_NOT: // true or false
-				if(res.toBool())
-					return LuneObject.falseLuneObject;
-				else
-					return LuneObject.trueLuneObject;
-			case OP_BIT_NOT: // 取反
-				return new LuneObject(~res.longValue());
-			default:
-				throw new RuntimeException();
+			switch(this.opType)
+			{
+				case OP_NOT: // true or false
+					if(res.toBool())
+						res = LuneObject.falseLuneObject;
+					else
+						res =  LuneObject.trueLuneObject;
+					break;
+				case OP_BIT_NOT: // 取反
+					res = new LuneObject(~res.longValue());
+					break;
+				default:
+					rt.RuntimeError(this, "%s 语句错误", this.variable);
+			}
+		}catch(Exception e)
+		{
+			rt.RuntimeError(this, "%s", e.getMessage());
 		}
+		rt.LeaveStatement(this);
+		return res;
 	}
 }

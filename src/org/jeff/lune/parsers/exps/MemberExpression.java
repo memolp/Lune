@@ -2,6 +2,7 @@ package org.jeff.lune.parsers.exps;
 
 import org.jeff.lune.LuneRuntime;
 import org.jeff.lune.object.LuneObject;
+import org.jeff.lune.object.LuneObjectType;
 
 /**
  * 属性访问表达式
@@ -28,14 +29,17 @@ public class MemberExpression extends ExpressionStatement
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
+		rt.EnterStatement(this);
 		// 先获取父对象
 		LuneObject obj = rt.GetLuneObject(parent, object);
-		if(obj == null) 
+		if(obj.objType == LuneObjectType.None) 
 		{
-			throw new RuntimeException();
+			rt.RuntimeError(this, "%s 符号未找到.",  parent);
 		}
 		// 再执行子对象表达式-并将父对象传入
-		return this.child.OnExecute(rt, obj);
+		LuneObject res =  this.child.OnExecute(rt, obj);
+		rt.LeaveStatement(this);
+		return res;
 	}
 	
 	@Override

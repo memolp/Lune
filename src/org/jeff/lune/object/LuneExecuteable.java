@@ -9,5 +9,5 @@ public abstract class LuneExecuteable extends LuneObject
 	{
 		this.objType = LuneObjectType.EXECUTEABLE;
 	}
-	public abstract LuneObject Execute(LuneRuntime rt, LuneObject ...args);
+	public abstract LuneObject Execute(LuneRuntime rt, LuneObject ...args) throws Exception;
 }

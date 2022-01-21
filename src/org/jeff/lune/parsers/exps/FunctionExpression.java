@@ -18,6 +18,8 @@ public class FunctionExpression extends ExpressionStatement
 	public BlockStatement body;
 	/** 函数声明的形参列表 */
 	public List<Statement> params;
+	/** 函数语句对应的函数对象 */
+	LuneFunction _thisFunc;
 	/**
 	 * 函数声明
 	 * @param line
@@ -27,13 +29,16 @@ public class FunctionExpression extends ExpressionStatement
 	{
 		super(StatementType.FUNCTION, line, col);
 		this.params = new LinkedList<Statement>();
+		_thisFunc = new LuneFunction(this); // 将函数包装一下
 	}
-	
+	/**
+	 * 这里执行只是返回LuneFunction对象，然后再调用里面的执行
+	 */
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
-		// 注意函数声明的运行之后生成函数对象
-		return new LuneFunction(this);
+		// 返回已经生产好的函数对象
+		return _thisFunc;
 	}
 	/**
 	 * 这个才是函数调用的时候执行的真正逻辑
@@ -43,10 +48,12 @@ public class FunctionExpression extends ExpressionStatement
 	 */
 	public LuneObject OnFunctionCall(LuneRuntime rt, LuneObject object)
 	{
+		rt.EnterStatement(this);
 		rt.PushBlockType(BlockStatementType.FUNCTION_BLOCK);
 		// 执行函数内部的语句
 		LuneObject res = this.body.OnExecute(rt, null);
 		rt.PopBlockType();
+		rt.LeaveStatement(this);
 		// 重置全部打断标记
 		rt.IsReturnFlag = false;
 		rt.IsBreakFlag = false;

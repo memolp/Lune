@@ -118,4 +118,6 @@ public enum TokenType
 	KW_VAR,
 	/** 关键字 ... */
 	KW_ARGS,
+	/** 关键字 None */
+	KW_NONE,
 }

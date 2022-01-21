@@ -42,6 +42,7 @@ public class ForLoopStatement extends Statement
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
+		rt.EnterStatement(this);
 		rt.PushBlockType(BlockStatementType.LOOP_BLOCK);
 		// 执行迭代逻辑 - 实际上只有列表和字典的迭代
 		LuneObject obj = iterObject.OnExecute(rt, null);
@@ -52,13 +53,13 @@ public class ForLoopStatement extends Statement
 			// 列表的迭代，for k in b ==> 其中k只能允许1个。
 			if(params.size() != 1)
 			{
-				throw new RuntimeException();
+				rt.RuntimeError(this, "for 列表迭代参数仅支持1个，而提供了多个:%s", this.params);
 			}
 			// 参数只能是变量标识符
 			Statement p = params.get(0);
 			if(p.statementType != StatementType.IDENTIFIER)
 			{
-				throw new RuntimeException();
+				rt.RuntimeError(this, "for 迭代参数仅支持普通的变量, 而提供的类型:%s", p.statementType);
 			}
 			IdentifierStatement pIdt = (IdentifierStatement)p;
 			// 获取list的迭代器对象
@@ -78,18 +79,32 @@ public class ForLoopStatement extends Statement
 		else if(obj.objType == LuneObjectType.MAP)
 		{
 			LuneMapObject map = (LuneMapObject)obj;
-			if(params.size() != 2)
+			int params_count = params.size();
+			// 如果参数是1个，就只迭代key， 如果是2个，就是key和value一起
+			if(params_count > 2 || params_count < 1)
 			{
-				throw new RuntimeException();
+				rt.RuntimeError(this, "for 字典迭代支持1~2个参数，而实际提供了%s个", params_count);
 			}
 			Statement key = params.get(0);
-			Statement value = params.get(1);
-			if(key.statementType != StatementType.IDENTIFIER || value.statementType != StatementType.IDENTIFIER)
+			Statement value  = null;
+			if(params_count == 2)
 			{
-				throw new RuntimeException();
+				value = params.get(1);
+			}
+			if(key.statementType != StatementType.IDENTIFIER)
+			{
+				rt.RuntimeError(this, "for 迭代参数仅支持普通的变量, 而提供的名称:%s 类型:%s", key, key.statementType);
+			}
+			if(value != null && value.statementType != StatementType.IDENTIFIER)
+			{
+				rt.RuntimeError(this, "for 迭代参数仅支持普通的变量, 而提供的名称:%s 类型:%s", value, value.statementType);
 			}
 			IdentifierStatement keyId = (IdentifierStatement)key;
-			IdentifierStatement valueId = (IdentifierStatement)value;
+			IdentifierStatement valueId = null;
+			if(params_count == 2)
+			{
+				valueId = (IdentifierStatement)value;
+			}
 			// map的迭代对象
 			Iterator<Entry<LuneObject, LuneObject>> iterator = map.iterator();
 			Entry<LuneObject, LuneObject> entry;
@@ -97,7 +112,8 @@ public class ForLoopStatement extends Statement
 			{
 				entry = iterator.next();
 				rt.CurrentNamespace().AddSymbol(keyId.name, entry.getKey());
-				rt.CurrentNamespace().AddSymbol(valueId.name, entry.getValue());
+				if(params_count == 2)
+					rt.CurrentNamespace().AddSymbol(valueId.name, entry.getValue());
 				this.body.OnExecute(rt, null);
 				if(rt.IsBreakFlag || rt.IsReturnFlag) break;
 				rt.IsContinueFlag = false;
@@ -106,13 +122,14 @@ public class ForLoopStatement extends Statement
 		// 不支持的迭代
 		else
 		{
-			throw new RuntimeException();
+			rt.RuntimeError(this, "for 无法迭代该类型:%s", obj.objType);
 		}
 		// 迭代结束后需要重置break和continue标记
 		rt.PopBlockType();
+		rt.LeaveStatement(this);
 		rt.IsBreakFlag = false;
 		rt.IsContinueFlag = false;
-		return null;
+		return LuneObject.noneLuneObject;
 	}
 
 }

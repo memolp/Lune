@@ -36,6 +36,6 @@ public class LuneClassObject extends LunePropertyObject
 		{
 			return this.base_.GetAttribute(name);
 		}
-		return null;
+		return LuneObject.noneLuneObject;
 	}
 }

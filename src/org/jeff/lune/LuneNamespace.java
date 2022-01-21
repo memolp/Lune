@@ -20,9 +20,16 @@ import org.jeff.lune.object.LuneObject;
  */
 public class LuneNamespace
 {
+	/** 命名空间的类型，仅作为标记 */
 	LuneNamespaceType mNameType;
+	/** 命名空间内部符号字符串所对应的值的字典 */
 	Map<String, LuneObject> mNamespaces = new HashMap<String, LuneObject>();
+	/** 命名空间是一个包含关系，因此有一个父空间。 只有全局的那个没有。  */
 	LuneNamespace mParent = null;
+	/**
+	 * 创建命名空间
+	 * @param type
+	 */
 	public LuneNamespace(LuneNamespaceType type)
 	{
 		this.mNameType = type;
@@ -35,24 +42,6 @@ public class LuneNamespace
 	{
 		this.mNameType = type;
 		this.mParent = parent;
-	}
-	/**
-	 * 添加符号变量
-	 * @param name
-	 * @param value
-	 */
-	public void AddSymbol(String name, String value)
-	{
-		mNamespaces.put(name, new LuneObject(value));
-	}
-	/**
-	 * 添加符号变量
-	 * @param name
-	 * @param value
-	 */
-	public void AddSymbol(String name, Object value)
-	{
-		mNamespaces.put(name, new LuneObject(value));
 	}
 	/**
 	 * 添加符号变量 - 递归设置变量，存在则替换
@@ -70,7 +59,7 @@ public class LuneNamespace
 	 * 递归更新
 	 * @param name
 	 * @param value
-	 * @return
+	 * @return 找到name的符号后返回true， 否则返回false
 	 */
 	private boolean SetSymbol(String name, LuneObject value)
 	{
@@ -84,9 +73,8 @@ public class LuneNamespace
 		}
 		return false;
 	}
-	
 	/**
-	 * 将另一个的命名空间拷贝
+	 * 将另一个的命名空间拷贝， 主要是用于闭包使用。
 	 * @param n
 	 */
 	public void UpdateNamespace(LuneNamespace n)
@@ -116,6 +104,7 @@ public class LuneNamespace
 				return this.mParent.GetSymbol(name);
 			}
 		}
-		return null;
+		// 不再返回null，而是返回空对象。
+		return LuneObject.noneLuneObject;
 	}
 }

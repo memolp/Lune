@@ -27,14 +27,19 @@ public class ReturnStatement extends Statement
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
-		if(this.expression == null) return null;
-		LuneObject res = this.expression.OnExecute(rt, null);
-		// 如果返回的是一个函数，那么就做一个闭包
-		if(res.objType == LuneObjectType.FUNCTION)
+		rt.EnterStatement(this);
+		LuneObject res = LuneObject.noneLuneObject;
+		if(this.expression != null)
 		{
-			LuneFunction func = (LuneFunction)res;
-			func.namespace = rt.CurrentNamespace();
+			res = this.expression.OnExecute(rt, null);
+			// 如果返回的是一个函数，那么就做一个闭包
+			if(res.objType == LuneObjectType.FUNCTION)
+			{
+				LuneFunction func = (LuneFunction)res;
+				func.namespace = rt.CurrentNamespace(); // 主要是将当前的命名空间拷贝的函数身上，方便执行的时候可以索引到。
+			}
 		}
+		rt.LeaveStatement(this);
 		return res;
 	}
 	

@@ -5,11 +5,16 @@ import org.jeff.lune.object.LuneExecuteable;
 import org.jeff.lune.object.LuneListObject;
 import org.jeff.lune.object.LuneObject;
 
+/**
+ * for i in range(11) 用于做序号迭代。
+ * @author 覃贵锋
+ *
+ */
 public class LuneRangeFunc extends LuneExecuteable 
 {
 
 	@Override
-	public LuneObject Execute(LuneRuntime rt, LuneObject... args) 
+	public LuneObject Execute(LuneRuntime rt, LuneObject... args) throws Exception
 	{
 		long start = 0;
 		long end = 0;

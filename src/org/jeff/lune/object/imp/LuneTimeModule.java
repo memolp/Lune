@@ -8,6 +8,11 @@ import org.jeff.lune.object.LuneObject;
 import org.jeff.lune.object.LuneObjectType;
 import org.jeff.lune.object.LunePropertyObject;
 
+/**
+ * 时间相关的操作模块
+ * @author 覃贵锋
+ *
+ */
 public class LuneTimeModule extends LunePropertyObject
 {
 	public LuneTimeModule()
@@ -25,7 +30,7 @@ public class LuneTimeModule extends LunePropertyObject
 	class _clock_func extends LuneExecuteable
 	{
 		@Override
-		public LuneObject Execute(LuneRuntime rt, LuneObject... args)
+		public LuneObject Execute(LuneRuntime rt, LuneObject... args) throws Exception
 		{
 			return new LuneObject(System.currentTimeMillis());
 		}
@@ -38,7 +43,7 @@ public class LuneTimeModule extends LunePropertyObject
 	class _localtime_func extends LuneExecuteable
 	{
 		@Override
-		public LuneObject Execute(LuneRuntime rt, LuneObject... args)
+		public LuneObject Execute(LuneRuntime rt, LuneObject... args) throws Exception
 		{
 			return new LuneObject(new Date().getTime());
 		}
@@ -51,14 +56,16 @@ public class LuneTimeModule extends LunePropertyObject
 	class _sleep_func extends LuneExecuteable
 	{
 		@Override
-		public LuneObject Execute(LuneRuntime rt, LuneObject... args)
+		public LuneObject Execute(LuneRuntime rt, LuneObject... args) throws Exception
 		{
 			try
 			{
 				Thread.sleep(args[0].longValue());
-			}catch (Exception e) {
+			}catch (Exception e) 
+			{
+				throw new Exception(e.getMessage());
 			}
-			return null;
+			return LuneObject.noneLuneObject;
 		}
 	}
 }

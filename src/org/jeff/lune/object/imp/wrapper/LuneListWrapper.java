@@ -33,7 +33,7 @@ public class LuneListWrapper extends LunePropertyObject
 	class _wrapper_size_func extends LuneExecuteable
 	{
 		@Override
-		public LuneObject Execute(LuneRuntime rt, LuneObject... args)
+		public LuneObject Execute(LuneRuntime rt, LuneObject... args) throws Exception
 		{
 			LuneListObject list = (LuneListObject)this.callObject;
 			return new LuneObject(list.Size());
@@ -47,11 +47,15 @@ public class LuneListWrapper extends LunePropertyObject
 	class _wrapper_append_func extends LuneExecuteable
 	{
 		@Override
-		public LuneObject Execute(LuneRuntime rt, LuneObject... args)
+		public LuneObject Execute(LuneRuntime rt, LuneObject... args) throws Exception
 		{
+			if(args.length != 1)
+			{
+				rt.RuntimeError("append(element) 需要1个参数");
+			}
 			LuneListObject list = (LuneListObject) this.callObject;
 			list.Append(args[0]);
-			return null;
+			return args[0];
 		}
 	}
 	/**
@@ -62,11 +66,15 @@ public class LuneListWrapper extends LunePropertyObject
 	class _wrapper_remove_func extends LuneExecuteable
 	{
 		@Override
-		public LuneObject Execute(LuneRuntime rt, LuneObject... args)
+		public LuneObject Execute(LuneRuntime rt, LuneObject... args) throws Exception
 		{
+			if(args.length != 1)
+			{
+				throw new Exception("remove(element) 需要1个参数");
+			}
 			LuneListObject list = (LuneListObject) this.callObject;
-			list.Remove(args[0]);
-			return null;
+			// 返回true表示移除成功。
+			return LuneObject.CreateBooleanObject(list.Remove(args[0]));
 		}
 	}
 	/**
@@ -77,12 +85,15 @@ public class LuneListWrapper extends LunePropertyObject
 	class _wrapper_remove_at_func extends LuneExecuteable
 	{
 		@Override
-		public LuneObject Execute(LuneRuntime rt, LuneObject... args)
+		public LuneObject Execute(LuneRuntime rt, LuneObject... args) throws Exception
 		{
+			if(args.length != 1)
+			{
+				throw new Exception("removeAt(index) 需要1个参数");
+			}
 			LuneListObject list = (LuneListObject) this.callObject;
 			LuneObject index = args[0];
-			list.RemoveAt((int) index.longValue());
-			return null;
+			return list.RemoveAt((int) index.longValue());
 		}
 	}
 	/**
@@ -93,13 +104,17 @@ public class LuneListWrapper extends LunePropertyObject
 	class _wrapper_insert_func extends LuneExecuteable
 	{
 		@Override
-		public LuneObject Execute(LuneRuntime rt, LuneObject... args)
+		public LuneObject Execute(LuneRuntime rt, LuneObject... args) throws Exception
 		{
+			if(args.length != 2)
+			{
+				throw new Exception("insert(index, obj) 需要2个参数");
+			}
 			LuneListObject list = (LuneListObject) this.callObject;
 			LuneObject index = args[0];
 			LuneObject obj = args[1];
 			list.Insert((int) index.longValue(), obj);
-			return null;
+			return LuneObject.noneLuneObject;
 		}
 	}
 	/**
@@ -110,11 +125,11 @@ public class LuneListWrapper extends LunePropertyObject
 	class _wrapper_clear_func extends LuneExecuteable
 	{
 		@Override
-		public LuneObject Execute(LuneRuntime rt, LuneObject... args)
+		public LuneObject Execute(LuneRuntime rt, LuneObject... args) throws Exception
 		{
 			LuneListObject list = (LuneListObject)this.callObject;
 			list.Clear();
-			return null;
+			return LuneObject.noneLuneObject;
 		}
 	}
 }

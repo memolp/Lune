@@ -83,7 +83,7 @@ public class TokenReader
 		return false;
 	}
 	
-	static final String UNEXPECTEDSYMBOL = "unexpected symbol `%c` in file:%s, line:%s, column:%s";
+	static final String UNEXPECTEDSYMBOL = "错误的符号: `%c` 文件:%s, 行:%s, 列:%s";
 	/** 当前的读取器 需要支持mark和reset */
 	Reader reader_;
 	StringBuilder current_sb_;
@@ -179,7 +179,9 @@ public class TokenReader
 			}
 		}while(true);
 		// 返回Token
-		return new Token(current_type_, current_sb_.toString(), cache_lineno, cache_col);
+		Token tt =  new Token(current_type_, current_sb_.toString(), cache_lineno, cache_col);
+		tt.isDoubleValue = isFloat;
+		return tt;
 	}
 	/**
 	 * 解析变量标识符 仅支持_ 和 字母，数字（数字不可打头）
@@ -261,6 +263,10 @@ public class TokenReader
 		{
 			return new Token(TokenType.KW_FALSE, identify, cache_lineno, cache_col);
 		}
+		else if(identify.equals("null"))
+		{
+			return new Token(TokenType.KW_NONE, identify, cache_lineno, cache_col);
+		}
 		// 返回Token
 		return new Token(current_type_, identify, cache_lineno, cache_col);
 	}
@@ -288,7 +294,7 @@ public class TokenReader
 				int next = GetChar();
 				if(next == EOF)
 				{
-					throw new RuntimeException();
+					throw new RuntimeException(String.format("意外的文件结尾, 文件:%s, 行:%s, 列:%s", filename_, lineno_, column_));
 				}
 				// \\ \' \" 都会只取最后一个，其他都是连取
 				if(next == '\\' || next == '\'' || next == '"')
@@ -406,7 +412,7 @@ public class TokenReader
 			{
 				if(current_sb_.length() > 0)
 				{
-					throw new RuntimeException("???????????");
+					throw new RuntimeException(String.format("意外的文件结尾, 文件:%s, 行:%s, 列:%s", filename_, lineno_, column_));
 				}
 				return null;
 			}

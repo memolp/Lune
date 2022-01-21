@@ -51,6 +51,10 @@ public class LuneContext
 			LuneListObject obj = new LuneListObject();
 			this.runtime_.mGlobalNamespaces.AddSymbol(name, obj);
 		}
+		public void AddGlobalSymbol(String name, LuneObject obj)
+		{
+			this.runtime_.mGlobalNamespaces.AddSymbol(name, obj);
+		}
 		
 		/**
 		 * 一般无需调用此方法

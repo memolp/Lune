@@ -6,10 +6,18 @@ import java.util.List;
 
 import org.jeff.lune.object.imp.wrapper.LuneListWrapper;
 
+/**
+ * 列表
+ * @author 覃贵锋
+ *
+ */
 public class LuneListObject extends LuneObject 
 {
+	/** 定义一个列表的属性操作，每个列表都可以使用 */
 	private static LuneListWrapper _wrapper_class = new LuneListWrapper();
+	/** 列表内部的数据 */
 	private List<LuneObject> elements_;
+	
 	public LuneListObject()
 	{
 		this.objType = LuneObjectType.LIST;
@@ -45,15 +53,16 @@ public class LuneListObject extends LuneObject
 	 * 设置元素 list[index]=v
 	 * @param index
 	 * @param val
+	 * @throws Exception 
 	 */
-	public void Set(int index, LuneObject val) 
+	public void Set(int index, LuneObject val) throws Exception 
 	{
 		int size = this.elements_.size();
 		if(size > index)
 			this.elements_.set(index, val);
 		else
 		{
-			throw new RuntimeException(); //index out of range
+			throw new Exception(String.format("设置列表原始，下标:%s 超过列表的最大长度:%s", index, size));
 		}
 	}
 	/**
@@ -68,17 +77,17 @@ public class LuneListObject extends LuneObject
 	 * 移除元素
 	 * @param obj
 	 */
-	public void Remove(LuneObject obj)
+	public boolean Remove(LuneObject obj)
 	{
-		this.elements_.remove(obj);
+		return this.elements_.remove(obj);
 	}
 	/**
 	 * 移除指定位置的元素
 	 * @param index
 	 */
-	public void RemoveAt(int index)
+	public LuneObject RemoveAt(int index)
 	{
-		this.elements_.remove(index);
+		return this.elements_.remove(index);
 	}
 	/**
 	 * 插入元素

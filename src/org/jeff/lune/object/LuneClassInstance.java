@@ -21,6 +21,6 @@ public class LuneClassInstance extends LunePropertyObject
 		{
 			return this.class_.GetAttribute(name);
 		}
-		return null;
+		return LuneObject.noneLuneObject;  // 返回None对象
 	}
 }
