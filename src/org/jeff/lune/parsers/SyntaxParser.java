@@ -107,6 +107,7 @@ public class SyntaxParser
 		{
 			Statement state = this.statement_parser(false);
 			if(state == null) break;
+			state.parent = block;  // 建立层级树结构
 			block.AddStatement(state);
 		}while(true);
 	}
@@ -148,6 +149,7 @@ public class SyntaxParser
 			}
 			BlockStatement body = new BlockStatement(next_token.tokenLine, next_token.tokenCol);
 			this.block_parser(body);
+			body.parent = function; // ----语句树
 			function.body = body;
 			next_token = this.GetToken();
 			if(next_token == null)
@@ -186,6 +188,7 @@ public class SyntaxParser
 			{
 				// TODO 这里每次都会创建新的标识符，移除缓存是方便做堆栈。具体后面再看。
 				IdentifierStatement idt =  new IdentifierStatement(token.tokenStr, token.tokenLine, token.tokenCol);
+				idt.parent = func; // ----语句树
 				params.add(idt);
 			}
 			token = this.GetToken();
@@ -234,6 +237,7 @@ public class SyntaxParser
 			if(next_token.tokenType ==TokenType.IDENTIFIER)
 			{
 				IdentifierStatement idt = new IdentifierStatement(next_token.tokenStr, next_token.tokenLine, next_token.tokenCol);
+				idt.parent = for_state;  // ----语句树
 				for_state.params.add(idt);
 			}
 			else if(next_token.tokenType == TokenType.KW_IN)
@@ -253,6 +257,7 @@ public class SyntaxParser
 			this.luneRT_.SyntaxError(CODE_ERROR, this.file_,  for_state.startLine);
 			return;
 		}
+		iter.parent = for_state;  // ----语句树
 		for_state.iterObject = iter;
 		Token next_token = this.GetToken();
 		// 必须是）
@@ -270,6 +275,7 @@ public class SyntaxParser
 		}
 		BlockStatement body = new BlockStatement(next_token.tokenLine, next_token.tokenCol);
 		this.block_parser(body);
+		body.parent = for_state; // ----语句树
 		for_state.body = body;
 		next_token = this.GetToken();
 		if(next_token == null || next_token.tokenType != TokenType.RCURLY)
@@ -291,6 +297,7 @@ public class SyntaxParser
 			return;
 		}
 		Statement exp = this.statement_parser(false);
+		exp.parent = wstate; // ----语句树
 		wstate.condition = exp;
 		Token next_token = this.GetToken();
 		if(token == null || next_token.tokenType != TokenType.RPAREN)
@@ -306,6 +313,7 @@ public class SyntaxParser
 		}
 		BlockStatement body =  new BlockStatement(next_token.tokenLine, next_token.tokenCol);
 		this.block_parser(body);
+		body.parent = wstate; // ----语句树
 		wstate.body = body;
 		next_token = this.GetToken();
 		if(next_token == null || next_token.tokenType != TokenType.RCURLY)
@@ -330,6 +338,7 @@ public class SyntaxParser
 				return;
 			}
 			Statement exp = this.statement_parser(false);
+			exp.parent = if_state; // ----语句树
 			if_state.condition = exp;
 			Token next_token = this.GetToken();
 			if(next_token == null || next_token.tokenType != TokenType.RPAREN)
@@ -346,6 +355,7 @@ public class SyntaxParser
 		}
 		BlockStatement body =  new BlockStatement(next_token.tokenLine, next_token.tokenCol);
 		this.block_parser(body);
+		body.parent = if_state; // ----语句树
 		if_state.body = body;
 		next_token = this.GetToken();
 		if(next_token == null || next_token.tokenType != TokenType.RCURLY)
@@ -363,12 +373,14 @@ public class SyntaxParser
 		{
 			IfElseStatement branch = new IfElseStatement(StatementType.ELIF, next_token.tokenLine, next_token.tokenCol);
 			this.ifelse_parser(branch, false);
+			branch.parent = if_state.parent; // ----语句树 特殊处理
 			if_state.Switch = branch;
 		}
 		else if(next_token.tokenType == TokenType.KW_ELSE)
 		{
 			IfElseStatement branch = new IfElseStatement(StatementType.ELSE, next_token.tokenLine, next_token.tokenCol);
 			this.ifelse_parser(branch, true);
+			branch.parent = if_state.parent;  // ----语句树 特殊处理
 			if_state.Switch = branch;
 		}
 		else
@@ -448,6 +460,7 @@ public class SyntaxParser
 						Statement element = this.statement_parser(true);
 						if(element != null)
 						{
+							element.parent = nlist;  // ----语句树
 							nlist.AddElement(element);
 						}
 						
@@ -495,6 +508,8 @@ public class SyntaxParser
 									this.luneRT_.SyntaxError(CODE_ERROR,  this.file_, next_token.tokenLine);
 									return null;
 								}
+								key.parent = ndict;
+								value.parent = ndict;
 								ndict.Add(key, value);
 							}
 							// 继续解析下一个
@@ -540,6 +555,7 @@ public class SyntaxParser
 						this.luneRT_.SyntaxError(UNEXPCETED_SYMBOL, token.tokenStr, this.file_, token.tokenLine);
 					}
 					left = new UnaryExpression(TokenType.OP_NOT, value, token.tokenLine, token.tokenCol);
+					value.parent = left;  // ----语句树
 				}// 取反
 				else if(token.tokenType == TokenType.OP_BIT_XOR)
 				{
@@ -549,6 +565,7 @@ public class SyntaxParser
 						this.luneRT_.SyntaxError(UNEXPCETED_SYMBOL, token.tokenStr,  this.file_, token.tokenLine);
 					}
 					left = new UnaryExpression(TokenType.OP_NOT, value, token.tokenLine, token.tokenCol);
+					value.parent = left;  // ----语句树
 				}// 取负数
 				else if(token.tokenType == TokenType.OP_MINUS)
 				{
@@ -595,6 +612,7 @@ public class SyntaxParser
 					ReturnStatement ret = new ReturnStatement(token.tokenLine, token.tokenCol);
 					Statement exp = this.statement_parser(false);
 					ret.expression = exp;
+					exp.parent = ret;  // ----语句树
 					left = ret;
 					// return也不会在左侧
 					return left;
@@ -641,11 +659,13 @@ public class SyntaxParser
 				}
 				CallExpression ncall = new CallExpression(next_token.tokenLine, next_token.tokenCol);
 				ncall.variable = left;
+				ncall.parent = left;  // ----语句树
 				do
 				{
 					Statement node = this.statement_parser(false);
 					if(node != null)
 					{
+						node.parent = ncall;  // ----语句树
 						ncall.params.add(node);
 					}
 					Token next_tk = this.GetToken();
@@ -669,6 +689,7 @@ public class SyntaxParser
 			{
 				IndexExpression meb = new IndexExpression(next_token.tokenLine, next_token.tokenCol);
 				meb.object = left;
+				meb.parent = left;  // ----语句树
 				
 				Statement child = this.statement_parser(false);
 				if(child == null)
@@ -685,6 +706,7 @@ public class SyntaxParser
 					this.luneRT_.SyntaxError(EXPCETED_SYMBOL, "]", this.file_, next_token.tokenLine);
 				}
 				meb.index = child;
+				child.parent = meb;  // ----语句树
 				left = meb;
 				continue;
 			}// 赋值语句
@@ -692,6 +714,7 @@ public class SyntaxParser
 			{
 				AssignmentExpression assign = new AssignmentExpression(next_token.tokenLine, next_token.tokenCol);
 				assign.variable =left;
+				assign.parent = left;  // ----语句树
 				
 				Statement value = this.statement_parser(false);
 				if(value == null)
@@ -699,19 +722,21 @@ public class SyntaxParser
 					this.luneRT_.SyntaxError(CODE_ERROR, this.file_, next_token.tokenLine);
 				}
 				assign.value = value;
+				value.parent = assign;  // ----语句树
 				left = assign;
 				break;
 			}// 属性索引 dot
 			else if(next_token.tokenType == TokenType.OP_DOT)
 			{
 				MemberExpression meb = new MemberExpression(next_token.tokenLine, next_token.tokenCol);
-				meb.parent = left;
+				meb.parent = left;  // ----语句树
 				Statement child = this.statement_parser(true);
 				if(child == null)
 				{
 					this.luneRT_.SyntaxError(CODE_ERROR, this.file_, next_token.tokenLine);
 				}
 				meb.child = child;
+				child.parent = meb; // ----语句树
 				left = meb;
 				break;
 			}
@@ -746,6 +771,8 @@ public class SyntaxParser
 					{
 						this.luneRT_.SyntaxError(CODE_ERROR, this.file_, next_token.tokenLine);
 					}
+					left.parent = binExp; // ----语句树
+					right.parent = binExp; // ----语句树
 					binExp.left = left;
 					binExp.right = right;
 					left = UpdateBinaryExpressionPriority(binExp);

@@ -19,6 +19,8 @@ public abstract class Statement
 	public int startColoumn;
 	/** 标记为整体 - 主要是针对括号的 */
 	public boolean isWhole = false;
+	/** 语句树，因此将树结构放回本身，这样整个索引过程无需外部存储 */
+	public Statement parent = null;
 	/**
 	 * 语句创建时需要传入指定的行和列，用于错误显示。
 	 * @param type  语句的类型

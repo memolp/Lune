@@ -101,30 +101,6 @@ public class LuneRuntime
 		parser.parser();
 		return parser.Execute();
 	}
-	/**
-	 * 通过语句获取变量
-	 * @param state
-	 * @param object
-	 * @return
-	 */
-	public LuneObject GetLuneObject(Statement state, LuneObject object)
-	{
-		// 如果是变量标识， 那么要么是全局/局部变量 要么是object的属性变量
-		if(state.statementType == StatementType.IDENTIFIER)
-		{
-			IdentifierStatement idt = (IdentifierStatement)state;
-			if(object == null)
-			{	// 去命名空间找-这里找到的要么是全局的，要么是局部的（函数内部的）
-				return mCurrentNamespaces.GetSymbol(idt.name);
-			}else
-			{  // object的属性变量
-				return object.GetAttribute(idt.name);
-			}
-		}else  // 继续执行语句，返回结果
-		{
-			return state.OnExecute(this,  null);
-		}
-	}
 	/** 命名空间栈 目前只针对函数，类，全局进行建栈。用于隔开变量的作用区域 */
 	List<LuneNamespace> mNamespaceStack = new LinkedList<LuneNamespace>();
 	/**

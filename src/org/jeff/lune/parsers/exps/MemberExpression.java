@@ -11,8 +11,6 @@ import org.jeff.lune.object.LuneObjectType;
  */
 public class MemberExpression extends ExpressionStatement
 {
-	/** 父对象 */
-	public Statement parent;
 	/** 子对象 */
 	public Statement child;
 	
@@ -31,7 +29,7 @@ public class MemberExpression extends ExpressionStatement
 	{
 		rt.EnterStatement(this);
 		// 先获取父对象
-		LuneObject obj = rt.GetLuneObject(parent, object);
+		LuneObject obj =  this.parent.OnExecute(rt, object);
 		if(obj.objType == LuneObjectType.None) 
 		{
 			rt.RuntimeError(this, "%s 符号未找到.",  parent);

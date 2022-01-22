@@ -52,11 +52,11 @@ public class AssignmentExpression extends ExpressionStatement
 				object.SetAttribute(idt.name, val);
 			}
 		}
-		// 对列表和字典的赋值
+		// 对列表和字典的赋值a[1] =1 a['k'] = 1
 		else if(variable.statementType == StatementType.INDEX)
 		{
-			IndexExpression listexp = (IndexExpression)variable;
-			LuneObject _obj = rt.GetLuneObject(listexp.object, object);
+			IndexExpression listexp = (IndexExpression)variable;  // IndexExpression本身的OnExecute是返回索引处的值，但是我们这里是要赋值，因此拆出来。
+			LuneObject _obj =  listexp.object.OnExecute(rt, object);
 			LuneObject val = this.value.OnExecute(rt, null);
 			if(_obj.objType == LuneObjectType.LIST)
 			{

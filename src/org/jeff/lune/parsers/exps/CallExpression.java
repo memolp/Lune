@@ -6,14 +6,11 @@ import java.util.List;
 import org.jeff.lune.LuneNamespace;
 import org.jeff.lune.LuneNamespaceType;
 import org.jeff.lune.LuneRuntime;
-import org.jeff.lune.object.LuneClassInstance;
 import org.jeff.lune.object.LuneClassObject;
 import org.jeff.lune.object.LuneExecuteable;
 import org.jeff.lune.object.LuneFunction;
-import org.jeff.lune.object.LuneListObject;
 import org.jeff.lune.object.LuneObject;
 import org.jeff.lune.object.LuneObjectType;
-import org.jeff.lune.parsers.objs.IdentifierStatement;
 
 /**
  * 函数调用
@@ -36,7 +33,18 @@ public class CallExpression extends ExpressionStatement
 		super(StatementType.FUNCCALL, line, col);
 		this.params = new LinkedList<Statement>();
 	}
-
+	/**
+	 * 函数调用，根据不同的类型进行处理
+	 * 1. Java导出的EXECUTEABLE类型
+	 * 2. Lune中call一个定义的类（相当于创建类的实例） 
+	 *    例如：
+	 *       A = class("a")
+	 *       a = A()  # 这里就是对类进行call，生成实例。
+	 * 3. 函数调用
+	 *     普通的函数调用 test()
+	 *     类的静态方法 A.test()
+	 *     成员方法调用 a.test()
+	 */
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
@@ -44,33 +52,34 @@ public class CallExpression extends ExpressionStatement
 		LuneObject result = LuneObject.noneLuneObject;
 		// 函数调用分为 三类 Java导出的可执行方法， 类执行，其他函数执行
 		// 获取函数名对象
-		LuneObject func = rt.GetLuneObject(variable, object);
+		LuneObject func = variable.OnExecute(rt, object);
 		if(func.objType == LuneObjectType.None) 
 		{
 			rt.RuntimeError(this, "%s 符号未找到定义.",  variable);
 		}
-		// Java 执行方法
+		// Java 执行方法 - 这个是Java那边导出的。
 		if(func.objType == LuneObjectType.EXECUTEABLE)
 		{
-			// 先处理传参部分，将参数全部生成对象
+			// 先处理传参部分，根据函数的形参生成实参数据。
 			LuneObject[] args = new LuneObject[this.params.size()];
 			LuneObject temp_args = null;
 			int index = 0;
-			// 处理传参部分
+			// 处理传参部分 
 			for(Statement param_state: this.params)
 			{
 				temp_args = param_state.OnExecute(rt, null);
-				if(temp_args.objType == LuneObjectType.None)
+				// 由于允许传null空值，因此这里去掉判断
+				/*if(temp_args.objType == LuneObjectType.None)
 				{
 					rt.RuntimeError(this, "%s 符号参数未找到对应的定义",  param_state);
-				}
+				}*/
 				args[index ++] = temp_args;
 			}
 			LuneExecuteable impfunc = (LuneExecuteable)func;
-			impfunc.callObject = object;
+			impfunc.callObject = object;  // 如果是math.round 那么round是EXECUTEABLE，调用者是math。需要提供
 			try
 			{
-				result =  impfunc.Execute(rt, args);
+				result =  impfunc.Execute(rt, args);   // 执行结果并返回。
 			} catch (Exception e)
 			{
 				rt.RuntimeError(this, "%s", e.getMessage());
@@ -78,80 +87,37 @@ public class CallExpression extends ExpressionStatement
 		}
 		else
 		{
-			// 先处理传参部分，将参数全部生成对象
-			List<LuneObject> args = new LinkedList<LuneObject>();
-			LuneObject temp_args = null;
-			// 处理传参部分
-			for(Statement param_state: this.params)
-			{
-				temp_args = param_state.OnExecute(rt, null);
-				if(temp_args.objType == LuneObjectType.None)
-				{
-					rt.RuntimeError(this, "%s 符号参数未找到对应的定义",  param_state);
-				}
-				args.add(temp_args);
-			}
 			// 对类执行调用，相当于创建对象
 			if(func.objType == LuneObjectType.CLASS)
 			{
-				LuneClassInstance obj = new LuneClassInstance((LuneClassObject) func);
-				// 这里在创建对象后，立即执行其构造函数
-				LuneObject ctor_ = obj.GetAttribute("ctor");
-				if(ctor_.objType == LuneObjectType.FUNCTION)
+				LuneClassObject clsDef = (LuneClassObject)func;
+				try
 				{
-					FunctionExpression func_ = (FunctionExpression) ctor_.GetValue();
-					// 创建临时命名空间
-					LuneNamespace temp_func_namespace = new LuneNamespace(LuneNamespaceType.FUNCTION, rt.CurrentNamespace());
-					// 将传参设置给系统变量，方便可变参数使用
-					temp_func_namespace.AddSymbol("arguments", new LuneListObject(args));
-					// this对象赋值
-					temp_func_namespace.AddSymbol("this", obj);
-					// 形参部分设置赋值
-					int index =0;
-					IdentifierStatement paramIdt = null;
-					for(Statement param_state: func_.params)
-					{
-						paramIdt = (IdentifierStatement)param_state;
-						if(index < args.size())
-							temp_func_namespace.AddSymbol(paramIdt.name, args.get(index++));
-						else
-							temp_func_namespace.AddSymbol(paramIdt.name, new LuneObject());	// 传参数量可以和声明的参数不一致的。
-					}
-					// 将命名空间放入栈顶
-					rt.PushNamespace(temp_func_namespace);
-					result = func_.OnFunctionCall(rt, null);
-					// 函数执行完成后移除命名空间
-					rt.PopNamespace();
+					result = clsDef.Exceute(rt, this.params);
+				} catch (Exception e)
+				{
+					rt.RuntimeError(this, "%s", e.getMessage());
 				}
 			}
 			// 函数调用
 			else if(func.objType == LuneObjectType.FUNCTION)
 			{
 				LuneFunction func_obj = (LuneFunction)func;
-				FunctionExpression func_ = (FunctionExpression) func_obj.GetValue();
+				// 函数的命名空间放在外部创建，主要是方便提供额外的数据进去。
 				LuneNamespace temp_func_namespace = new LuneNamespace(LuneNamespaceType.FUNCTION, rt.CurrentNamespace());
-				if(func_obj.namespace != null)
-				{
-					temp_func_namespace.UpdateNamespace(func_obj.namespace);
-				}
-				temp_func_namespace.AddSymbol("arguments",  new LuneListObject(args));
-				int index =0;
-				IdentifierStatement paramIdt = null;
-				for(Statement param_state: func_.params)
-				{
-					paramIdt = (IdentifierStatement)param_state;
-					if(index < args.size())
-						temp_func_namespace.AddSymbol(paramIdt.name, args.get(index++));
-					else
-						temp_func_namespace.AddSymbol(paramIdt.name, new LuneObject());	// 传参数量可以和声明的参数不一致的。
-				}
+				// 将命名空间放入栈顶
+				rt.PushNamespace(temp_func_namespace);
+				// 如何函数调用是someobj.call() 这样的，就需要对someobj进行判断
 				if(object != null)
 				{
+					// 如果someobj是类的实例对象，就需要提供默认的self进去
 					if(object.objType == LuneObjectType.INSTANCE)
-						temp_func_namespace.AddSymbol("this", object);
+						temp_func_namespace.AddSymbol("self", object);
+					// 如果someobj是类，那边只有两种可能 调用静态方法，或者调用父类的方法。
 					else if(object.objType == LuneObjectType.CLASS)
 					{
-						LuneObject ist = rt.CurrentNamespace().GetSymbol("this");
+						// TODO 这里后面加安全检查吧，比如这个object Class 是不是 self的父类。
+						/*LuneObject ist = rt.CurrentNamespace().GetSymbol("this");
 						if(ist != null)
 						{
 							if(ist.objType != LuneObjectType.INSTANCE)
@@ -160,12 +126,16 @@ public class CallExpression extends ExpressionStatement
 							}
 							// 这里还要检查类继承对不对
 							temp_func_namespace.AddSymbol("this", ist);
-						}
+						}*/
 					}
 				}
-				// 将命名空间放入栈顶
-				rt.PushNamespace(temp_func_namespace);
-				result = func_.OnFunctionCall(rt, null);
+				try
+				{
+					result = func_obj.Exceute(rt, this.params);
+				} catch (Exception e)
+				{
+					rt.RuntimeError(this, "%s", e.getMessage());
+				}
 				// 函数执行完成后移除命名空间
 				rt.PopNamespace();
 			}else

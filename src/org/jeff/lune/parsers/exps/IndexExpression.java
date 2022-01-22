@@ -33,7 +33,7 @@ public class IndexExpression extends ExpressionStatement
 	{
 		rt.EnterStatement(this);
 		// 下标访问只有列表和字典支持
-		LuneObject res = rt.GetLuneObject(this.object, object_);
+		LuneObject res = this.object.OnExecute(rt, object_);
 		if(res.objType == LuneObjectType.None) 
 		{
 			rt.RuntimeError(this, "%s 没有找到该对象", this.object);
