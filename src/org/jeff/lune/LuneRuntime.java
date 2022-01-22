@@ -16,10 +16,7 @@ import org.jeff.lune.object.imp.LuneRangeFunc;
 import org.jeff.lune.object.imp.LuneStringModule;
 import org.jeff.lune.object.imp.LuneTimeModule;
 import org.jeff.lune.parsers.SyntaxParser;
-import org.jeff.lune.parsers.exps.BlockStatementType;
 import org.jeff.lune.parsers.exps.Statement;
-import org.jeff.lune.parsers.exps.StatementType;
-import org.jeff.lune.parsers.objs.IdentifierStatement;
 
 /**
  * Lune运行时
@@ -31,26 +28,18 @@ import org.jeff.lune.parsers.objs.IdentifierStatement;
  */
 public class LuneRuntime 
 {
-	static String LINE_END = System.getProperty("line.separator");
+	
 	/** 全局变量命名空间 */
 	LuneNamespace mGlobalNamespaces;
 	/** 当前的命名空间 */
 	LuneNamespace mCurrentNamespaces;
+	/** DEBUG开关 */
+	public boolean IsDebug = false;
 	/**
 	 * 创建运行时，会注册各种内置的公用方法和接口
 	 */
 	public LuneRuntime()
 	{
-		this.mDebug = false;
-		this.CreateRuntimeNamespace();
-	}
-	/**
-	 * 创建运行时，可以设置调试模式启动，这样堆栈信息才会有。
-	 * @param debug
-	 */
-	public LuneRuntime(boolean debug)
-	{
-		this.mDebug = debug;
 		this.CreateRuntimeNamespace();
 	}
 	/**
@@ -127,66 +116,8 @@ public class LuneRuntime
 	public boolean IsReturnFlag = false;
 	/** continue语句标记 - 用于控制代码执行流程，在循环里面判断是否跳过后面的代码*/
 	public boolean IsContinueFlag = false;
-	/** 代码块类型栈 - 用于区函数、条件、循环等等代码块的层级，方便判断break，return，continue */
-	List<BlockStatementType> mBlockTypeStack = new LinkedList<BlockStatementType>();
-	/**
-	 * 将当前的代码块类型压入栈。
-	 * @param blockType
-	 */
-	public void PushBlockType(BlockStatementType blockType) 
-	{
-		mBlockTypeStack.add(blockType);
-	}
-	/**
-	 * 弹出当前的代码块类型
-	 */
-	public void PopBlockType() 
-	{
-		// 安全判断，理论上不会出现。
-		if(mBlockTypeStack.isEmpty()) return;  // TODO 增加日志
-		mBlockTypeStack.remove(mBlockTypeStack.size() - 1);
-	}
-	/**
-	 * 判断指定的代码块类型在不在这个层级里面。
-	 * 例如：如果break 出现在了if里面，那就需要往前找if是不是在循环里面。
-	 * @param btype
-	 * @return
-	 */
-	public boolean isInBlock(BlockStatementType btype) 
-	{
-		for(int i= mBlockTypeStack.size() -1 ; i>=0; i--)
-		{
-			if(mBlockTypeStack.get(i) == btype) return true;
-		}
-		return false;
-	}
 	/** 代码执行的堆栈记录-用于在出错时抛出详细的调用过程*/
 	List<Statement> mRuntimeStatementStack = new LinkedList<Statement>();
-	/** 代码执行堆栈仅调试模式才执行 */
-	boolean mDebug = false;
-	/**
-	 * 进入执行语句，期间的全部异常错误都会有这个语句产生
-	 * @param state
-	 */
-	public void EnterStatement(Statement state)
-	{
-		if(!mDebug) return;
-		mRuntimeStatementStack.add(state);
-	}
-	/**
-	 * 离开执行语句，传入的语句对象仅作为安全判断。
-	 * @param state
-	 */
-	public void LeaveStatement(Statement state)
-	{
-		if(!mDebug) return;
-		if(mRuntimeStatementStack.isEmpty()) return; //TODO 
-		// 移除最后的语句
-		if(state != mRuntimeStatementStack.remove(mRuntimeStatementStack.size() - 1))
-		{
-			//TODO
-		}
-	}
 	
 	public void RuntimeWarning(String message)
 	{
@@ -206,16 +137,10 @@ public class LuneRuntime
 	{
 		String  msg = String.format(fmt, args);
 		StringBuilder sb = new StringBuilder();
-		sb.append(String.format("运行异常: %s 文件:%s, 行:%s,", msg, Statement.CurrentFile, state.startLine));
-//		sb.append(LINE_END);
-//		Statement temp = null;
-//		for(int i=mRuntimeStatementStack.size() -1; i >= 0;  i --)
-//		{
-//			temp = mRuntimeStatementStack.get(i);
-//			sb.append(String.format("%s 行:%s", temp, temp.startLine));
-//			sb.append(LINE_END);
-//		}
-		throw new RuntimeException(sb.toString());
+		sb.append(String.format("运行异常: %s 文件:%s, 行:%s %s", msg, Statement.CurrentFile, state.startLine, Statement.LINE_END));
+		state.TraceBack(sb, 5);
+		System.err.print(sb.toString());
+		throw new RuntimeException();
 	}
 	/**
 	 * 语法错误-将直接退出

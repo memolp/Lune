@@ -48,12 +48,8 @@ public class FunctionExpression extends ExpressionStatement
 	 */
 	public LuneObject OnFunctionCall(LuneRuntime rt, LuneObject object)
 	{
-		rt.EnterStatement(this);
-		rt.PushBlockType(BlockStatementType.FUNCTION_BLOCK);
 		// 执行函数内部的语句
 		LuneObject res = this.body.OnExecute(rt, null);
-		rt.PopBlockType();
-		rt.LeaveStatement(this);
 		// 重置全部打断标记
 		rt.IsReturnFlag = false;
 		rt.IsBreakFlag = false;

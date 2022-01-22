@@ -52,7 +52,7 @@ public class LuneClassObject extends LunePropertyObject
 		// 将命名空间放入栈顶
 		rt.PushNamespace(temp_func_namespace);
 		temp_func_namespace.AddSymbol("self", obj);  // 将实例对象给self, 并放入命名空间。
-		ctor_func.Exceute(rt,  params);  // 形参转实参到LuneFunction内部处理。
+		ctor_func.Exceute(rt,  params, true);  // 形参转实参到LuneFunction内部处理。
 		// 函数执行完成后移除命名空间
 		rt.PopNamespace();
 		return obj;  // 注意虽然调用了构造函数，但是最后返回的应该还是实例对象。

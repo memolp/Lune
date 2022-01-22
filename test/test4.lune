@@ -20,7 +20,7 @@ for(i in range(10 + 1))
   print(i)
 }
 
-if(c)
+if(c + 1)
 {
   print("xxx")
 }

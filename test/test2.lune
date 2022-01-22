@@ -1,4 +1,4 @@
-import("test1")
+import("test/test1")
 
 test = function(arg1)
 {
@@ -18,7 +18,7 @@ test = function(arg1)
 
 
 i = 0
-while(i < 5 && false)
+while(i < 5 && true)
 {
 	i = i +1
 	print(string.format("w::::%s", i))

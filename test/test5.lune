@@ -1,27 +1,28 @@
 
 People = class("People")    # 声明类
-People.ctor = function(name, age){
-    this.Name = name
-    this.Age = age
+People.ctor = function(self, name, age){
+    self.Name = name
+    self.Age = age
 }
-People.Say = function(){
-    print(this.Name, "BA", this.Age, "HAH")
+People.Say = function(self){
+    print(self.Name, "BA", self.Age, "HAH")
 }
 Worker = class("People-Worker", People) # 继承
-Worker.ctor = function(name, age, zy){
-    People.ctor(name, age)
-    this.ZY = zy
+Worker.ctor = function(self, name, age, zy){
+    People.ctor(self, name, age)
+    self.ZY = zy
 }
-Worker.Say = function(){
-    print(string.format("I am %s, %s years old, I work in %s", this.Name, this.Age, this.ZY))
-    People.Say()
+Worker.Say = function(self){
+    print("wwww",self.Name)
+    print(string.format("I am %s, %s years old, I work in %s", self.Name, self.Age, self.ZY))
+    People.Say(self)
 }
-Worker.Run = function(callback){
-    print(this.Name, " Run....")
-    this.Age = this.Age + 1
-    callback(this.Name, this.Age)
+Worker.Run = function(self, callback){
+    print(self.Name, " Run....")
+    self.Age = self.Age + 1
+    callback(self.Name, self.Age)
 }
-Worker.GetAge = function(){return this.Age}
+Worker.GetAge = function(self){return self.Age}
 John = Worker("John", 20, "建筑师")  # 创建实例
 Lily = Worker("Lily", 18, "理发师")
 LvWa = People("Luwa", 99999)
@@ -30,15 +31,15 @@ Lily.Say()
 LvWa.Say()
 Lily.Run(function(n,a){print(n, "run after", a)})
 Developer = class("Developer-Worker", Worker)
-Developer.Say = function(){
-    Worker.Say()
-    if(this.Age > 20){
+Developer.Say = function(self){
+    Worker.Say(self)
+    if(self.Age > 20){
         print("wait ...........", "i am Engineer.")
     }else{
         print("wait ...........", "i am Newbee.")
     }
 }
-Developer.Lam = function(a){ return function(d, c){ print("Lam.....",a, d, c, this.Name)}}  
+Developer.Lam = function(self, a){ return function(d, c){ print("Lam.....",a, d, c, self.Name)}}  
 Zhang = Developer("Zhang", 13, "程序员")
 Zhang.Say()
 b = Zhang.Lam("ssss")

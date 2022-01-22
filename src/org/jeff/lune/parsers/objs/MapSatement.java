@@ -43,7 +43,6 @@ public class MapSatement extends Statement
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
-		rt.EnterStatement(this);
 		// 获取字典语句表达式的结果，创建字典对象
 		LuneMapObject map = new LuneMapObject();
 		for(Statement key: this.elements.keySet())
@@ -57,7 +56,6 @@ public class MapSatement extends Statement
 			LuneObject valueObj = this.elements.get(key).OnExecute(rt, null);
 			map.Set(keyObj, valueObj);
 		}
-		rt.LeaveStatement(this);
 		return map;
 	}
 	

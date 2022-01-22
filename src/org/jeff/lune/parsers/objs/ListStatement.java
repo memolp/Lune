@@ -39,7 +39,6 @@ public class ListStatement extends Statement
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
-		rt.EnterStatement(this);
 		// 创建List对象，并将每个元素语句生成对应的元素对象
 		LuneListObject list = new LuneListObject();
 		for(Statement state: this.elements)
@@ -48,7 +47,6 @@ public class ListStatement extends Statement
 			LuneObject obj= state.OnExecute(rt, null);
 			list.Append(obj);
 		}
-		rt.LeaveStatement(this);
 		return list;
 	}
 	

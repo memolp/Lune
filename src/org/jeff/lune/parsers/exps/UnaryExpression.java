@@ -30,7 +30,6 @@ public class UnaryExpression extends ExpressionStatement
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
-		rt.EnterStatement(this);
 		// 先计算右侧值
 		LuneObject res = this.variable.OnExecute(rt, null);
 		try
@@ -53,7 +52,6 @@ public class UnaryExpression extends ExpressionStatement
 		{
 			rt.RuntimeError(this, "%s", e.getMessage());
 		}
-		rt.LeaveStatement(this);
 		return res;
 	}
 }

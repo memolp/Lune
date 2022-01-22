@@ -29,7 +29,6 @@ public class IfElseStatement extends Statement
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
-		rt.EnterStatement(this);
 		// if 语句不可能是 xx.if 这样的形式，因此不存在调用者
 		if(this.statementType  != StatementType.ELSE)
 		{
@@ -64,7 +63,16 @@ public class IfElseStatement extends Statement
 		{
 			this.body.OnExecute(rt, null);
 		}
-		rt.LeaveStatement(this);
 		return LuneObject.noneLuneObject;
+	}
+	
+	@Override
+	public String toString()
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append("if");
+		sb.append(this.condition.toString());
+		sb.append("");
+		return sb.toString();
 	}
 }

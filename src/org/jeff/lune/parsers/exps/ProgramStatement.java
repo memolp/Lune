@@ -27,12 +27,8 @@ public class ProgramStatement extends BlockStatement
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object)
 	{
 		Statement.CurrentFile = this.sourceFile;
-		// 压入代码块类型
-		rt.PushBlockType(BlockStatementType.PROGRAM_BLOCK);
 		// 执行内部语句 = 得到结果
 		LuneObject res = super.OnExecute(rt, object);
-		// 弹出代码类型
-		rt.PopBlockType();
 		// 返回结果
 		return res;
 	}

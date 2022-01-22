@@ -27,7 +27,6 @@ public class ReturnStatement extends Statement
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
-		rt.EnterStatement(this);
 		LuneObject res = LuneObject.noneLuneObject;
 		if(this.expression != null)
 		{
@@ -39,7 +38,6 @@ public class ReturnStatement extends Statement
 				func.namespace = rt.CurrentNamespace(); // 主要是将当前的命名空间拷贝的函数身上，方便执行的时候可以索引到。
 			}
 		}
-		rt.LeaveStatement(this);
 		return res;
 	}
 	

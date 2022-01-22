@@ -157,7 +157,26 @@ public class LuneObject extends Object
 		{
 			throw new Exception(String.format("数据:%s, 类型: %s, 无法转换成浮点数类型", this.value_, this.objType));
 		}
-		
+	}
+	/**
+	 * 不带异常的转浮点数，注意不能转的全部是0
+	 * @return
+	 */
+	public double safeDouble()
+	{
+		// bool 值返回0和1
+		if(this.objType == LuneObjectType.BOOL)
+		{
+			if((boolean)this.value_) return 1;
+			return 0;
+		}
+		try
+		{
+			return Double.parseDouble(this.strValue());
+		}catch (Exception e) 
+		{
+			return 0; // 所有无法转的都会变成0；
+		}
 	}
 	/**
 	 * 转换成整数
@@ -181,6 +200,28 @@ public class LuneObject extends Object
 		{
 			throw new Exception(String.format("数据:%s, 类型: %s, 无法转换成整数类型", this.value_, this.objType));
 		}
+	}
+	/**
+	 * 不带异常的转整形，注意不能转的全部是0
+	 * @return
+	 */
+	public long safeLong()
+	{
+		// bool 值返回0和1
+				if(this.objType == LuneObjectType.BOOL)
+				{
+					if((boolean)this.value_) return 1;
+					return 0;
+				}
+				try
+				{
+					// 尝试进行转换
+					double  v = this.doubleValue();
+					return new Double(v).longValue(); // 这里不用直接用Long.parseLong, 如果是浮点数字符串直接报错。。。
+				}catch (Exception e) 
+				{
+					return 0;
+				}
 	}
 	/**
 	 * 转换成字符串

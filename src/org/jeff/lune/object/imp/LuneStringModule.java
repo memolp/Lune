@@ -38,7 +38,7 @@ public class LuneStringModule extends LunePropertyObject
 				throw new Exception("string.format(fmt, ...) 至少需要2个参数");
 			}
 			String fmt = args[0].strValue();
-			Object[] params = new String[args.length - 1];
+			Object[] params = new Object[args.length - 1];
 			for(int i=1; i < args.length; i++)
 			{
 				params[i-1] = args[i].GetValue();

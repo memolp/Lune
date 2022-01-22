@@ -35,7 +35,6 @@ public class AssignmentExpression extends ExpressionStatement
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
-		rt.EnterStatement(this); // 进入代码块
 		// object 为null ==> a= xx
 		// object 不为null ==> a.x = xx
 		if(variable.statementType == StatementType.IDENTIFIER)
@@ -82,7 +81,6 @@ public class AssignmentExpression extends ExpressionStatement
 		{
 			rt.RuntimeError(this, "%s 语句语法错误", this.toString());
 		}
-		rt.LeaveStatement(this); // 离开
 		return LuneObject.noneLuneObject;
 	}
 	

@@ -48,7 +48,6 @@ public class CallExpression extends ExpressionStatement
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
-		rt.EnterStatement(this);
 		LuneObject result = LuneObject.noneLuneObject;
 		// 函数调用分为 三类 Java导出的可执行方法， 类执行，其他函数执行
 		// 获取函数名对象
@@ -107,16 +106,21 @@ public class CallExpression extends ExpressionStatement
 				LuneNamespace temp_func_namespace = new LuneNamespace(LuneNamespaceType.FUNCTION, rt.CurrentNamespace());
 				// 将命名空间放入栈顶
 				rt.PushNamespace(temp_func_namespace);
+				boolean need_self_symbol = false;
 				// 如何函数调用是someobj.call() 这样的，就需要对someobj进行判断
 				if(object != null)
 				{
 					// 如果someobj是类的实例对象，就需要提供默认的self进去
 					if(object.objType == LuneObjectType.INSTANCE)
+					{
+						need_self_symbol = true;
 						temp_func_namespace.AddSymbol("self", object);
+					}
 					// 如果someobj是类，那边只有两种可能 调用静态方法，或者调用父类的方法。
 					else if(object.objType == LuneObjectType.CLASS)
 					{
 						// TODO 这里后面加安全检查吧，比如这个object Class 是不是 self的父类。
+						need_self_symbol = false;
 						/*LuneObject ist = rt.CurrentNamespace().GetSymbol("this");
 						if(ist != null)
 						{
@@ -131,7 +135,7 @@ public class CallExpression extends ExpressionStatement
 				}
 				try
 				{
-					result = func_obj.Exceute(rt, this.params);
+					result = func_obj.Exceute(rt, this.params, need_self_symbol);
 				} catch (Exception e)
 				{
 					rt.RuntimeError(this, "%s", e.getMessage());
@@ -143,7 +147,6 @@ public class CallExpression extends ExpressionStatement
 				rt.RuntimeError(this, "%s 不是可以调用的对象", func);
 			}
 		}
-		rt.LeaveStatement(this);
 		return result;
 	}
 	

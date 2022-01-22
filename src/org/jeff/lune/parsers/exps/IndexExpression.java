@@ -31,7 +31,6 @@ public class IndexExpression extends ExpressionStatement
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object_) 
 	{
-		rt.EnterStatement(this);
 		// 下标访问只有列表和字典支持
 		LuneObject res = this.object.OnExecute(rt, object_);
 		if(res.objType == LuneObjectType.None) 
@@ -59,7 +58,6 @@ public class IndexExpression extends ExpressionStatement
 		{
 			rt.RuntimeError(this, "语句:%s, 类型:%s 不支持下标操作.", res, res.objType);
 		}
-		rt.LeaveStatement(this);
 		return res;
 	}
 	

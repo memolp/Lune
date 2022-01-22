@@ -11,6 +11,8 @@ import org.jeff.lune.object.LuneObjectType;
  */
 public class MemberExpression extends ExpressionStatement
 {
+	/** 父对象 */
+	public Statement parent;
 	/** 子对象 */
 	public Statement child;
 	
@@ -25,9 +27,8 @@ public class MemberExpression extends ExpressionStatement
 	}
 	
 	@Override
-	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
+	public LuneObject OnExecute(LuneRuntime rt, LuneObject object)
 	{
-		rt.EnterStatement(this);
 		// 先获取父对象
 		LuneObject obj =  this.parent.OnExecute(rt, object);
 		if(obj.objType == LuneObjectType.None) 
@@ -36,7 +37,6 @@ public class MemberExpression extends ExpressionStatement
 		}
 		// 再执行子对象表达式-并将父对象传入
 		LuneObject res =  this.child.OnExecute(rt, obj);
-		rt.LeaveStatement(this);
 		return res;
 	}
 	

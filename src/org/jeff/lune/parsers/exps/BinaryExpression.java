@@ -85,7 +85,6 @@ public class BinaryExpression extends ExpressionStatement
 	@Override
 	public LuneObject OnExecute(LuneRuntime rt, LuneObject object) 
 	{
-		rt.EnterStatement(this); // 进入表达式。
 		// 获取左右操作数的对象
 		LuneObject obj1 = this.left.OnExecute(rt, null);
 		LuneObject obj2 = this.right.OnExecute(rt, null);
@@ -175,7 +174,6 @@ public class BinaryExpression extends ExpressionStatement
 		}catch (Exception e) {
 			rt.RuntimeError(this, "%s", e.getMessage());
 		}
-		rt.LeaveStatement(this); 
 		return result;
 	}
 	

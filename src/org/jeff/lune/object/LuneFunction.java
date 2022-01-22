@@ -20,7 +20,7 @@ public class LuneFunction extends LuneObject
 		this.objType = LuneObjectType.FUNCTION;
 	}
 	
-	public LuneObject Exceute(LuneRuntime rt, List<Statement> params) throws Exception
+	public LuneObject Exceute(LuneRuntime rt, List<Statement> params, boolean isCtor) throws Exception
 	{
 		// 闭包函数会有一个临时的命名空间，这里在调用这个闭包函数的时候就需要更新上去。
 		if(this.namespace != null)
@@ -30,6 +30,16 @@ public class LuneFunction extends LuneObject
 		// 形参变实参
 		List<LuneObject> args = new LinkedList<LuneObject>();
 		LuneObject temp_args = null;
+		 // 在self作为第一个参数的时候才会去获取，否则就不处理，这样会逻辑异常。
+		if(isCtor)
+		{
+			LuneObject self = rt.CurrentNamespace().GetSymbol("self");
+			if(self.objType !=  LuneObjectType.INSTANCE)
+			{
+				throw new Exception("self未找到实例引用");
+			}
+			args.add(self);
+		}
 		// 处理传参部分
 		for(Statement param_state: params)
 		{
@@ -43,10 +53,12 @@ public class LuneFunction extends LuneObject
 		}
 		// 如果是可变参数，那么arguments将保留全部的参数列表 - 递归就会创建N个LuneListObject。。。
 		rt.CurrentNamespace().AddSymbol("arguments", new LuneListObject(args));
-		// 形参部分设置赋值， 上面其实只是拿到了形参的实际引用数据，现在才逐个给函数内部的引用建立关系。
+		
+		FunctionExpression func = (FunctionExpression) this.value_;
 		int index =0;
 		IdentifierStatement paramIdt = null;
-		for(Statement param_state:  params)
+		// 形参部分设置赋值， 上面其实只是拿到了形参的实际引用数据，现在才逐个给函数内部的引用建立关系。
+		for(Statement param_state:  func.params)
 		{
 			paramIdt = (IdentifierStatement)param_state;
 			if(index < args.size())
@@ -55,7 +67,6 @@ public class LuneFunction extends LuneObject
 				rt.CurrentNamespace().AddSymbol(paramIdt.name, new LuneObject());	// 传参数量可以和声明的参数不一致的。
 		}
 		// 准备好上面的内容后就可以执行CALL了
-		FunctionExpression func = (FunctionExpression) this.value_;
 		return func.OnFunctionCall(rt, null);
 	}
 }

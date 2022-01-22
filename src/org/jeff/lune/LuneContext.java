@@ -82,4 +82,12 @@ public class LuneContext
 		{
 			return this.runtime_.execute(script);
 		}
+		/**
+		 * 设置运行Debug开关
+		 * @param b
+		 */
+		public void SetDebug(boolean b)
+		{
+			this.runtime_.IsDebug = b;
+		}
 }
